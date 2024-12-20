@@ -2,21 +2,27 @@ import {Args, Command, Flags} from '@oclif/core'
 
 export default class Install extends Command {
   static args = {
-    package_name: Args.string({
-      description: 'package to install',
+    server: Args.string({
+      description: 'name of the MCP server to install',
       required: true,
     }),
   }
 
-  static description = 'Install a package'
+  static description = 'Install a MCP server'
 
   static examples = [
-    '<%= config.bin %> <%= command.id %> package-name',
+    '<%= config.bin %> <%= command.id %> server-name',
+    '<%= config.bin %> <%= command.id %> server-name --client claude',
+    '<%= config.bin %> <%= command.id %> server-name --client continue',
   ]
 
   static flags = {
-    force: Flags.boolean({char: 'f'}),
-    name: Flags.string({char: 'n', description: 'name to print'}),
+    client: Flags.string({
+      char: 'c',
+      description: 'Target MCP client for server installation',
+      options: ['claude', 'continue'],
+      default: 'claude',
+    }),
   }
 
   static aliases = ['i']
@@ -24,10 +30,6 @@ export default class Install extends Command {
   public async run(): Promise<void> {
     const {args, flags} = await this.parse(Install)
 
-    const name = flags.name ?? 'world'
-    this.log(`hello ${name} from /Users/qin/Projects/cli/src/commands/install.ts!`)
-    if (args.package_name && flags.force) {
-      this.log(`you input --force and --package_name: ${args.package_name}`)
-    }
+    this.log(`Installing MCP server: ${args.server}\nwith client: ${flags.client}`)
   }
 }
