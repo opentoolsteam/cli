@@ -2,8 +2,69 @@ import {Args, Command, Flags} from '@oclif/core'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import * as os from 'os'
+import {z} from 'zod'
+
+// Define schemas outside the class
+const Publisher = z.object({
+  id: z.string().regex(/^[a-z0-9-]+$/),
+  name: z.string(),
+  url: z.string().url(),
+})
+
+const MCPServer = z.object({
+  id: z.string().regex(/^[a-z0-9-]+$/),
+  name: z.string(),
+  description: z.string(),
+  publisher: Publisher,
+  sourceUrl: z.string().url(),
+  license: z.string().optional(),
+  runtime: z.enum(['node', 'python', 'other']),
+  isOfficial: z.boolean().default(false),
+})
+
+// Infer types from schemas
+type MCPServerType = z.infer<typeof MCPServer>
 
 export default class Install extends Command {
+  // Mock function to simulate registry API
+  private async fetchRegistry(): Promise<MCPServerType[]> {
+    // Mock data
+    return [
+      {
+        id: 'browserbase',
+        name: 'Browserbase',
+        description: 'Automate browser interactions in the cloud (e.g. web navigation, data extraction, form filling, and more)',
+        publisher: {
+          id: 'browserbase',
+          name: 'Browserbase Inc.',
+          url: 'https://www.browserbase.com/',
+        },
+        sourceUrl: 'https://github.com/browserbase/mcp-server-browserbase/tree/main/browserbase',
+        license: 'MIT',
+        runtime: 'node',
+        isOfficial: true,
+      },
+    ]
+  }
+
+  private async validateServer(serverName: string): Promise<MCPServerType> {
+    try {
+      const servers = await this.fetchRegistry()
+      const server = servers.find(s => s.id === serverName)
+      if (!server) {
+        this.error(`Server "${serverName}" not found in registry`)
+      }
+      return server
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.error(`Failed to validate server: ${error.message}`)
+      } else {
+        this.error('An unknown error occurred during server validation')
+      }
+      throw error
+    }
+  }
+
   static args = {
     server: Args.string({
       description: 'name of the MCP server to install',
@@ -11,7 +72,7 @@ export default class Install extends Command {
     }),
   }
 
-  static description = 'Install a MCP server'
+  static description = 'Install an MCP server'
 
   static examples = [
     '<%= config.bin %> <%= command.id %> server-name',
@@ -22,7 +83,7 @@ export default class Install extends Command {
   static flags = {
     client: Flags.string({
       char: 'c',
-      description: 'Target MCP client for server installation',
+      description: 'Install the MCP server to this client',
       options: ['claude', 'continue'],
       default: 'claude',
     }),
@@ -33,7 +94,8 @@ export default class Install extends Command {
   public async run(): Promise<void> {
     const {args, flags} = await this.parse(Install)
 
-    // TODO: check if server exists in registry
+    // Validate server exists in registry
+    const server = await this.validateServer(args.server)
 
     // Detect operating system
     const platform = process.platform
