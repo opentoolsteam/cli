@@ -29,7 +29,10 @@ const MCPServer = z.object({
   }),
   isOfficial: z.boolean().default(false),
   sourceUrl: z.string().url(),
-  distributionUrl: z.string().url().optional(),
+  distribution: z.object({
+    type: z.enum(['npm', 'pip']),
+    package: z.string(),
+  }).optional(),
   license: z.string().optional(),
   runtime: z.enum(['node', 'python', 'other']),
   config: MCPConfig,
@@ -54,23 +57,23 @@ export default class Install extends Command {
         },
         isOfficial: true,
         sourceUrl: 'https://github.com/browserbase/mcp-server-browserbase/tree/main/browserbase',
-        distributionUrl: 'https://www.npmjs.com/package/@browserbasehq/mcp-browserbase',
+        distribution: {
+          type: 'npm',
+          package: '@browserbasehq/mcp-browserbase',
+        },
         license: 'MIT',
         runtime: 'node',
         config: {
-          '@browserbasehq-mcp-stagehand': {
+          '@browserbasehq/mcp-browserbase': {
             command: 'npx',
-            args: ['-y', '@browserbasehq/mcp-stagehand'],
+            args: ['-y', '@browserbasehq/mcp-browserbase'],
             env: {
               'BROWSERBASE_API_KEY': {
-                description: 'Your Browserbase API key',
+                description: 'Your Browserbase API key. Find it at: https://www.browserbase.com/settings',
               },
               'BROWSERBASE_PROJECT_ID': {
-                description: 'Your Browserbase project ID',
+                description: 'Your Browserbase project ID. Find it at: https://www.browserbase.com/settings',
               },
-              'OPENAI_API_KEY': {
-                description: 'Your OpenAI API key',
-              }
             }
           }
         }
