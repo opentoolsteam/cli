@@ -28,16 +28,16 @@ const MCPServer = z.object({
   isOfficial: z.boolean().default(false),
   sourceUrl: z.string().url(),
   distribution: z.object({
-    type: z.enum(['npm', 'pip']),
-    package: z.string(),
-  }).optional(),
+    type: z.enum(['npm', 'pip', 'source']),
+    package: z.string().optional(),
+  }),
   license: z.string().optional(),
-  runtime: z.enum(['node', 'python', 'other']),
+  runtime: z.enum(['node', 'python', 'go', 'other']),
   config: MCPConfig,
 })
 
 // Infer types from schemas
-type MCPServerType = z.infer<typeof MCPServer>
+export type MCPServerType = z.infer<typeof MCPServer>
 
 export default class Install extends Command {
   // Mock function to simulate registry API
