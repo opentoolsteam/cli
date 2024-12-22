@@ -4,22 +4,35 @@ import * as path from 'path'
 import * as os from 'os'
 import {z} from 'zod'
 
-// Define schemas outside the class
-const Publisher = z.object({
-  id: z.string().regex(/^[a-z0-9-]+$/),
-  name: z.string(),
-  url: z.string().url(),
+const EnvVariable = z.object({
+  description: z.string(),
+  required: z.boolean().default(true).optional(),
 })
+
+const MCPConfig = z.record(
+  z.string(),
+  z.object({
+    command: z.string(),
+    args: z.array(z.string()),
+    env: z.record(z.string(), EnvVariable),
+  }),
+)
 
 const MCPServer = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   name: z.string(),
   description: z.string(),
-  publisher: Publisher,
+  publisher: z.object({
+    id: z.string().regex(/^[a-z0-9-]+$/),
+    name: z.string(),
+    url: z.string().url(),
+  }),
+  isOfficial: z.boolean().default(false),
   sourceUrl: z.string().url(),
+  distributionUrl: z.string().url().optional(),
   license: z.string().optional(),
   runtime: z.enum(['node', 'python', 'other']),
-  isOfficial: z.boolean().default(false),
+  config: MCPConfig,
 })
 
 // Infer types from schemas
@@ -39,10 +52,28 @@ export default class Install extends Command {
           name: 'Browserbase Inc.',
           url: 'https://www.browserbase.com/',
         },
+        isOfficial: true,
         sourceUrl: 'https://github.com/browserbase/mcp-server-browserbase/tree/main/browserbase',
+        distributionUrl: 'https://www.npmjs.com/package/@browserbasehq/mcp-browserbase',
         license: 'MIT',
         runtime: 'node',
-        isOfficial: true,
+        config: {
+          '@browserbasehq-mcp-stagehand': {
+            command: 'npx',
+            args: ['-y', '@browserbasehq/mcp-stagehand'],
+            env: {
+              'BROWSERBASE_API_KEY': {
+                description: 'Your Browserbase API key',
+              },
+              'BROWSERBASE_PROJECT_ID': {
+                description: 'Your Browserbase project ID',
+              },
+              'OPENAI_API_KEY': {
+                description: 'Your OpenAI API key',
+              }
+            }
+          }
+        }
       },
     ]
   }
