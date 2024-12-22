@@ -10,14 +10,11 @@ const EnvVariable = z.object({
   required: z.boolean().default(true).optional(),
 })
 
-const MCPConfig = z.record(
-  z.string(),
-  z.object({
-    command: z.string(),
-    args: z.array(z.string()),
-    env: z.record(z.string(), EnvVariable),
-  }),
-)
+const MCPConfig = z.object({
+  command: z.string(),
+  args: z.array(z.string()),
+  env: z.record(z.string(), EnvVariable),
+})
 
 const MCPServer = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
@@ -65,17 +62,15 @@ export default class Install extends Command {
         license: 'MIT',
         runtime: 'node',
         config: {
-          '@browserbasehq/mcp-browserbase': {
-            command: 'npx',
-            args: ['-y', '@browserbasehq/mcp-browserbase'],
-            env: {
-              'BROWSERBASE_API_KEY': {
-                description: 'Your Browserbase API key. Find it at: https://www.browserbase.com/settings',
-              },
-              'BROWSERBASE_PROJECT_ID': {
-                description: 'Your Browserbase project ID. Find it at: https://www.browserbase.com/settings',
-              },
-            }
+          command: 'npx',
+          args: ['-y', '@browserbasehq/mcp-browserbase'],
+          env: {
+            'BROWSERBASE_API_KEY': {
+              description: 'Your Browserbase API key. Find it at: https://www.browserbase.com/settings',
+            },
+            'BROWSERBASE_PROJECT_ID': {
+              description: 'Your Browserbase project ID. Find it at: https://www.browserbase.com/settings',
+            },
           }
         }
       },
@@ -178,10 +173,7 @@ export default class Install extends Command {
 
         // Get server configuration from registry
         const server = await this.validateServer(serverName)
-
-        // Get the first (and only) key from the config object
-        const packageKey = Object.keys(server.config)[0]
-        const serverConfig = server.config[packageKey]
+        const serverConfig = server.config
 
         // Collect environment variables
         const envVars = serverConfig.env
