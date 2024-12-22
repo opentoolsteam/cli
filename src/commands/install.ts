@@ -3,6 +3,7 @@ import * as fs from 'fs/promises'
 import * as path from 'path'
 import * as os from 'os'
 import {z} from 'zod'
+import * as inquirer from '@inquirer/prompts'
 
 const EnvVariable = z.object({
   description: z.string(),
@@ -95,7 +96,6 @@ export default class Install extends Command {
       } else {
         this.error('An unknown error occurred during server validation')
       }
-      throw error
     }
   }
 
@@ -176,7 +176,42 @@ export default class Install extends Command {
         const configContent = await fs.readFile(configPath, 'utf-8')
         const config = JSON.parse(configContent)
 
-        this.log('Current config:', JSON.stringify(config, null, 2))
+        // Get server configuration from registry
+        const server = await this.validateServer(serverName)
+
+        // Get the first (and only) key from the config object
+        const packageKey = Object.keys(server.config)[0]
+        const serverConfig = server.config[packageKey]
+
+        // Collect environment variables
+        const envVars = serverConfig.env
+        const answers: Record<string, string> = {}
+
+        for (const [key, value] of Object.entries(envVars)) {
+          const answer = await inquirer.input({
+            message: value.description,
+            validate: (input: string) => {
+              if (value.required !== false && !input) {
+                return `${key} is required`
+              }
+              return true
+            }
+          })
+          answers[key] = answer
+        }
+
+        // Update the config with the new server and environment variables
+        config.mcpServers = config.mcpServers || {}
+        config.mcpServers[serverName] = {
+          command: serverConfig.command,
+          args: serverConfig.args,
+          env: answers
+        }
+
+        // Write the updated config back to file
+        await fs.writeFile(configPath, JSON.stringify(config, null, 2))
+
+        this.log(`Successfully installed ${serverName} with environment variables`)
 
       } catch (error: unknown) {
         if (error instanceof Error) {
