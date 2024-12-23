@@ -5,9 +5,16 @@ export const EnvVariable = z.object({
   required: z.boolean().default(true).optional(),
 })
 
-export const MCPConfig = z.object({
+export const MCPServerRuntimeArg = z.object({
+  description: z.string(),
+  default: z.any().optional(),
+  multiple: z.boolean().optional().default(false),
+})
+
+export const MCPServerConfig = z.object({
   command: z.string(),
   args: z.array(z.string()),
+  runtimeArgs: MCPServerRuntimeArg.optional(),
   env: z.record(z.string(), EnvVariable),
 })
 
@@ -28,7 +35,7 @@ export const MCPServer = z.object({
   }),
   license: z.string().optional(),
   runtime: z.enum(['node', 'python', 'go', 'other']),
-  config: MCPConfig,
+  config: MCPServerConfig,
 })
 
 // Infer types from schemas

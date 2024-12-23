@@ -212,6 +212,34 @@ export const servers: MCPServerType[] = [
     }
   },
   {
+    id: "filesystem-ref",
+    name: "Filesystem",
+    description: "Local filesystem access with configurable allowed paths. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-filesystem",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-filesystem"],
+      runtimeArgs: {
+        description: "Directories that the server will be allowed to access",
+        default: ["/Users/username/Desktop"],
+        multiple: true
+      },
+      env: {}
+    }
+  },
+  {
     id: "stagehand",
     name: "Stagehand by Browserbase",
     description: "This server enables LLMs to interact with web pages, perform actions, extract data, and observe possible actions in a real browser environment",

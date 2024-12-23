@@ -99,6 +99,58 @@ export default class Install extends Command {
         const server = await this.validateServer(serverName)
         const serverConfig = server.config
 
+        // Handle runtime arguments if they exist
+        let finalArgs = [...serverConfig.args]
+        if (serverConfig.runtimeArgs) {
+          const runtimeArg = serverConfig.runtimeArgs
+          let answer: any
+
+          // Special case for filesystem-ref server
+          let defaultValue = runtimeArg.default
+          if (serverName === 'filesystem-ref' && Array.isArray(defaultValue)) {
+            defaultValue = defaultValue.map(path =>
+              path.replace('username', os.userInfo().username)
+            )
+          }
+
+          if (runtimeArg.multiple) {
+            // First get the default path
+            answer = await inquirer.input({
+              message: runtimeArg.description,
+              default: Array.isArray(defaultValue) ? defaultValue.join(', ') : defaultValue,
+            })
+            let paths = answer.split(',').map((s: string) => s.trim())
+
+            // Keep asking for additional paths
+            while (true) {
+              const additionalPath = await inquirer.input({
+                message: "Add another allowed directory path? (press Enter to finish)",
+                default: "",
+              })
+
+              if (!additionalPath.trim()) {
+                break
+              }
+
+              paths.push(additionalPath.trim())
+            }
+
+            answer = paths
+          } else {
+            answer = await inquirer.input({
+              message: runtimeArg.description,
+              default: defaultValue,
+            })
+          }
+
+          // Add runtime arguments to args array
+          if (Array.isArray(answer)) {
+            finalArgs.push(...answer)
+          } else {
+            finalArgs.push(answer)
+          }
+        }
+
         // Collect environment variables
         const envVars = serverConfig.env
         const answers: Record<string, string> = {}
@@ -120,14 +172,14 @@ export default class Install extends Command {
         config.mcpServers = config.mcpServers || {}
         config.mcpServers[serverName] = {
           command: serverConfig.command,
-          args: serverConfig.args,
+          args: finalArgs,
           env: answers
         }
 
         // Write the updated config back to file
         await fs.writeFile(configPath, JSON.stringify(config, null, 2))
 
-        this.log(`Successfully installed ${serverName} with environment variables`)
+        this.log(`🛠️  Successfully installed ${serverName} 🛠️`)
 
       } catch (error: unknown) {
         if (error instanceof Error) {
