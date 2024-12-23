@@ -2,6 +2,39 @@ import type { MCPServerType } from '../types.js'
 
 export const servers: MCPServerType[] = [
   {
+    id: "aws-kb-retrieval-server-ref",
+    name: "AWS Knowledge Base",
+    description: "Retrieval from AWS Knowledge Base using Bedrock Agent Runtime. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/aws-kb-retrieval-server",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-aws-kb-retrieval",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-aws-kb-retrieval"],
+      env: {
+        "AWS_ACCESS_KEY_ID": {
+          description: "Your AWS access key ID.",
+        },
+        "AWS_SECRET_ACCESS_KEY": {
+          description: "Your AWS secret access key.",
+        },
+        "AWS_REGION": {
+          description: "Your AWS region.",
+        },
+      }
+    }
+  },
+  {
     id: "axiom",
     name: "Axiom",
     description: "Query and analyze your Axiom logs, traces, and all other event data in natural language",
@@ -50,6 +83,33 @@ export const servers: MCPServerType[] = [
     }
   },
   {
+    id: "brave-search-ref",
+    name: "Brave Search",
+    description: "Web and local search using Brave's Search API. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/brave-search",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-brave-search",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-brave-search"],
+      env: {
+        "BRAVE_API_KEY": {
+          description: "Your Brave Search API key. See: https://brave.com/search/api",
+        }
+      }
+    }
+  },
+  {
     id: 'browserbase',
     name: 'Browserbase',
     description: 'Automate browser interactions in the cloud (e.g. web navigation, data extraction, form filling, and more)',
@@ -77,6 +137,78 @@ export const servers: MCPServerType[] = [
           description: 'Your Browserbase project ID. Find it at: https://www.browserbase.com/settings',
         },
       }
+    }
+  },
+  {
+    id: "everart-ref",
+    name: "EverArt",
+    description: "AI image generation using various models using EverArt. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/everart",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-everart",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-everart"],
+      env: {
+        "EVERART_API_KEY": {
+          description: "Your EverArt API key. Find it at: https://www.everart.ai/api",
+        }
+      }
+    }
+  },
+  {
+    id: "everything-ref",
+    name: "Everything",
+    description: "This MCP server attempts to exercise all the features of the MCP protocol. It is not intended to be a useful server, but rather a test server for builders of MCP clients. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/everything",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-everything",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-everything"],
+      env: {}
+    }
+  },
+  {
+    id: "fetch-ref",
+    name: "Fetch",
+    description: "Web content fetching and conversion for efficient LLM usage. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
+    distribution: {
+      type: "pip",
+    },
+    license: "MIT",
+    runtime: "python",
+    config: {
+      command: "uvx",
+      args: ["mcp-server-fetch"],
+      env: {}
     }
   },
   {
