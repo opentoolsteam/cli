@@ -20,7 +20,7 @@ $ npm install -g opentools
 $ opentools COMMAND
 running command...
 $ opentools (--version)
-opentools/0.0.4 darwin-arm64 node-v22.10.0
+opentools/0.0.5 darwin-arm64 node-v22.10.0
 $ opentools --help [COMMAND]
 USAGE
   $ opentools COMMAND
@@ -30,6 +30,8 @@ USAGE
 # Commands
 <!-- commands -->
 * [`opentools help [COMMAND]`](#opentools-help-command)
+* [`opentools i SERVER`](#opentools-i-server)
+* [`opentools install SERVER`](#opentools-install-server)
 * [`opentools plugins`](#opentools-plugins)
 * [`opentools plugins:add PLUGIN`](#opentools-pluginsadd-plugin)
 * [`opentools plugins:inspect PLUGIN...`](#opentools-pluginsinspect-plugin)
@@ -60,6 +62,66 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.19/src/commands/help.ts)_
+
+## `opentools i SERVER`
+
+Install an MCP server
+
+```
+USAGE
+  $ opentools i SERVER [-c claude|continue]
+
+ARGUMENTS
+  SERVER  name of the MCP server to install
+
+FLAGS
+  -c, --client=<option>  [default: claude] Install the MCP server to this client
+                         <options: claude|continue>
+
+DESCRIPTION
+  Install an MCP server
+
+ALIASES
+  $ opentools i
+
+EXAMPLES
+  $ opentools i server-name
+
+  $ opentools i server-name --client claude
+
+  $ opentools i server-name --client continue
+```
+
+## `opentools install SERVER`
+
+Install an MCP server
+
+```
+USAGE
+  $ opentools install SERVER [-c claude|continue]
+
+ARGUMENTS
+  SERVER  name of the MCP server to install
+
+FLAGS
+  -c, --client=<option>  [default: claude] Install the MCP server to this client
+                         <options: claude|continue>
+
+DESCRIPTION
+  Install an MCP server
+
+ALIASES
+  $ opentools i
+
+EXAMPLES
+  $ opentools install server-name
+
+  $ opentools install server-name --client claude
+
+  $ opentools install server-name --client continue
+```
+
+_See code: [src/commands/install.ts](https://github.com/opentoolsteam/cli/blob/v0.0.5/src/commands/install.ts)_
 
 ## `opentools plugins`
 
