@@ -20,7 +20,7 @@ $ npm install -g opentools
 $ opentools COMMAND
 running command...
 $ opentools (--version)
-opentools/0.0.5 darwin-arm64 node-v22.10.0
+opentools/0.0.6 darwin-arm64 node-v22.10.0
 $ opentools --help [COMMAND]
 USAGE
   $ opentools COMMAND
@@ -121,7 +121,7 @@ EXAMPLES
   $ opentools install server-name --client continue
 ```
 
-_See code: [src/commands/install.ts](https://github.com/opentoolsteam/cli/blob/v0.0.5/src/commands/install.ts)_
+_See code: [src/commands/install.ts](https://github.com/opentoolsteam/cli/blob/v0.0.6/src/commands/install.ts)_
 
 ## `opentools plugins`
 
