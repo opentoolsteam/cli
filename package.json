@@ -10,8 +10,7 @@
   "dependencies": {
     "@inquirer/prompts": "^7.2.1",
     "@oclif/core": "^4",
-    "@oclif/plugin-help": "^6",
-    "@oclif/plugin-plugins": "^5"
+    "@oclif/plugin-help": "^6"
   },
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
@@ -50,8 +49,7 @@
     "dirname": "opentools",
     "commands": "./dist/commands",
     "plugins": [
-      "@oclif/plugin-help",
-      "@oclif/plugin-plugins"
+      "@oclif/plugin-help"
     ]
   },
   "repository": "opentoolsteam/cli",
