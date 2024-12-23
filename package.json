@@ -34,9 +34,8 @@
     "node": ">=18.0.0"
   },
   "files": [
-    "/bin",
     "/dist",
-    "/oclif.manifest.json"
+    "/bin"
   ],
   "homepage": "https://github.com/opentoolsteam/cli",
   "keywords": [
@@ -45,6 +44,13 @@
   "license": "MIT",
   "main": "dist/index.js",
   "type": "module",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "oclif": {
     "bin": "opentools",
     "dirname": "opentools",
@@ -63,10 +69,5 @@
     "prepack": "oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
-  },
-  "types": "dist/index.d.ts",
-  "exports": {
-    "./data/servers": "./dist/data/servers/index.js",
-    "./data/types": "./dist/data/types.js"
   }
 }
