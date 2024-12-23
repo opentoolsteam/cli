@@ -165,7 +165,10 @@ export default class Install extends Command {
               return true
             }
           })
-          answers[key] = answer
+          // Only add non-empty values to answers
+          if (answer.trim()) {
+            answers[key] = answer
+          }
         }
 
         // Update the config with the new server and environment variables

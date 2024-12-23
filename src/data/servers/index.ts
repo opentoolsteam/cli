@@ -202,6 +202,7 @@ export const servers: MCPServerType[] = [
     sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
     distribution: {
       type: "pip",
+      package: "mcp-server-fetch",
     },
     license: "MIT",
     runtime: "python",
@@ -240,6 +241,57 @@ export const servers: MCPServerType[] = [
     }
   },
   {
+    id: "gdrive-ref",
+    name: "Google Drive",
+    description: "File access and search capabilities for Google Drive. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/gdrive",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-gdrive",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-gdrive"],
+      env: {}
+    }
+  },
+  {
+    id: "git-ref",
+    name: "Git",
+    description: "Tools to read, search, and manipulate Git repositories. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/git",
+    distribution: {
+      type: "pip",
+      package: "mcp-server-git",
+    },
+    license: "MIT",
+    runtime: "python",
+    config: {
+      command: "uvx",
+      args: ["mcp-server-git", "--repository"],
+      runtimeArgs: {
+        description: "Filepath to the Git repository",
+        default: ["path/to/git/repo"],
+        multiple: false
+      },
+      env: {}
+    }
+  },
+  {
     id: "github-ref",
     name: "GitHub",
     description: "GitHub repository access and management. A Model Context Protocol reference server.",
@@ -264,6 +316,247 @@ export const servers: MCPServerType[] = [
           description: "Your GitHub Personal Access Token. Find it at: https://github.com/settings/tokens",
         }
       }
+    }
+  },
+  {
+    id: "gitlab-ref",
+    name: "GitLab",
+    description: "GitLab project access and management. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/gitlab",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-gitlab",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-gitlab"],
+      env: {
+        "GITLAB_PERSONAL_ACCESS_TOKEN": {
+          description: "Your GitLab Personal Access Token. See: https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html",
+        },
+        "GITLAB_API_URL": {
+          description: "GitLab API URL. Optional, defaults to gitlab.com, configure for self-hosted instances.",
+          required: false
+        }
+      }
+    }
+  },
+  {
+    id: "google-maps-ref",
+    name: "Google Maps",
+    description: "Google Maps location services, directions, and place details. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/google-maps",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-google-maps",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-google-maps"],
+      env: {
+        "GOOGLE_MAPS_API_KEY": {
+          description: "Your Google Maps API key. Find it at: https://console.cloud.google.com/google/maps-apis/credentials",
+        }
+      }
+    }
+  },
+  {
+    id: "memory-ref",
+    name: "Memory",
+    description: "Knowledge graph-based persistent memory system. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-memory",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-memory"],
+      env: {}
+    }
+  },
+  {
+    id: "postgres-ref",
+    name: "PostgreSQL",
+    description: "Read-only local PostgreSQL database access with schema inspection. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-postgres",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-postgres"],
+      runtimeArgs: {
+        description: "PostgreSQL connection string (Replace /mydb with your database name)",
+        default: ["postgresql://localhost/mydb"],
+        multiple: false
+      },
+      env: {}
+    }
+  },
+  {
+    id: "puppeteer-ref",
+    name: "Puppeteer",
+    description: "Browser automation and web scraping using Puppeteer. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-puppeteer",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-puppeteer"],
+      env: {}
+    }
+  },
+  {
+    id: "sentry-ref",
+    name: "Sentry",
+    description: "Retrieving and analyzing issues from Sentry.io. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/sentry",
+    distribution: {
+      type: "pip",
+      package: "mcp-server-sentry",
+    },
+    license: "MIT",
+    runtime: "python",
+    config: {
+      command: "uvx",
+      args: ["mcp-server-sentry", "--auth-token"],
+      runtimeArgs: {
+        description: "Your Sentry authentication token",
+        default: ["YOUR_SENTRY_TOKEN"],
+        multiple: false
+      },
+      env: {}
+    }
+  },
+  {
+    id: "sequential-thinking-ref",
+    name: "Sequential Thinking",
+    description: "Dynamic and reflective problem-solving through thought sequences. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-sequential-thinking",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      env: {}
+    }
+  },
+  {
+    id: "slack-ref",
+    name: "Slack",
+    description: "Slack channel management and messaging capabilities. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/slack",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-slack",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-slack"],
+      env: {
+        "SLACK_BOT_TOKEN": {
+          description: "Your Slack bot token. Find it at: https://api.slack.com/apps",
+        },
+        "SLACK_TEAM_ID": {
+          description: "Your Slack team/workspace ID, See: https://slack.com/help/articles/221769328-Locate-your-Slack-URL-or-ID#find-your-workspace-or-org-id",
+        }
+      }
+    }
+  },
+  {
+    id: "sqlite-ref",
+    name: "SQLite",
+    description: "Local SQLite database interaction and business intelligence capabilities. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/sqlite",
+    distribution: {
+      type: "pip",
+      package: "mcp-server-sqlite",
+    },
+    license: "MIT",
+    runtime: "python",
+    config: {
+      command: "uvx",
+      args: ["mcp-server-sqlite", "--db-path"],
+      runtimeArgs: {
+        description: "Path to your SQLite database file",
+        default: ["~/test.db"],
+        multiple: false
+      },
+      env: {}
     }
   },
   {
@@ -297,6 +590,29 @@ export const servers: MCPServerType[] = [
           description: 'Your OpenAI API key. Find it at: https://platform.openai.com/api-keys',
         },
       }
+    }
+  },
+  {
+    id: "time-ref",
+    name: "Time",
+    description: "Time and timezone conversion capabilities. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/time",
+    distribution: {
+      type: "pip",
+      package: "mcp-server-time",
+    },
+    license: "MIT",
+    runtime: "python",
+    config: {
+      command: "uvx",
+      args: ["mcp-server-time"],
+      env: {}
     }
   },
 ]
