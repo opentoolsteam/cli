@@ -20,7 +20,7 @@ $ npm install -g opentools
 $ opentools COMMAND
 running command...
 $ opentools (--version)
-opentools/0.0.2 darwin-arm64 node-v22.10.0
+opentools/0.0.3 darwin-arm64 node-v22.10.0
 $ opentools --help [COMMAND]
 USAGE
   $ opentools COMMAND
