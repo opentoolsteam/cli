@@ -33,5 +33,3 @@ export const MCPServer = z.object({
 
 // Infer types from schemas
 export type MCPServerType = z.infer<typeof MCPServer>
-export type EnvVariableType = z.infer<typeof EnvVariable>
-export type MCPConfigType = z.infer<typeof MCPConfig>

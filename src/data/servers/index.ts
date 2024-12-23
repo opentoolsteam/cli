@@ -79,4 +79,37 @@ export const servers: MCPServerType[] = [
       }
     }
   },
+  {
+    id: "stagehand",
+    name: "Stagehand by Browserbase",
+    description: "This server enables LLMs to interact with web pages, perform actions, extract data, and observe possible actions in a real browser environment",
+    publisher: {
+      id: "browserbase",
+      name: "Browserbase Inc.",
+      url: "https://www.browserbase.com/",
+    },
+    isOfficial: true,
+    sourceUrl: "https://github.com/browserbase/mcp-server-browserbase/tree/main/stagehand",
+    distribution: {
+      type: 'npm',
+      package: '@browserbasehq/mcp-stagehand',
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: 'npx',
+      args: ['-y', '@browserbasehq/mcp-stagehand'],
+      env: {
+        'BROWSERBASE_API_KEY': {
+          description: 'Your Browserbase API key. Find it at: https://www.browserbase.com/settings',
+        },
+        'BROWSERBASE_PROJECT_ID': {
+          description: 'Your Browserbase project ID. Find it at: https://www.browserbase.com/settings',
+        },
+        'OPENAI_API_KEY': {
+          description: 'Your OpenAI API key. Find it at: https://platform.openai.com/api-keys',
+        },
+      }
+    }
+  },
 ]
