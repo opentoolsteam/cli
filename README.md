@@ -20,7 +20,7 @@ $ npm install -g opentools
 $ opentools COMMAND
 running command...
 $ opentools (--version)
-opentools/0.0.0 darwin-arm64 node-v22.10.0
+opentools/0.0.1 darwin-arm64 node-v22.10.0
 $ opentools --help [COMMAND]
 USAGE
   $ opentools COMMAND
@@ -29,61 +29,19 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`opentools hello PERSON`](#opentools-hello-person)
-* [`opentools hello world`](#opentools-hello-world)
 * [`opentools help [COMMAND]`](#opentools-help-command)
+* [`opentools i SERVER`](#opentools-i-server)
+* [`opentools install SERVER`](#opentools-install-server)
 * [`opentools plugins`](#opentools-plugins)
-* [`opentools plugins add PLUGIN`](#opentools-plugins-add-plugin)
+* [`opentools plugins:add PLUGIN`](#opentools-pluginsadd-plugin)
 * [`opentools plugins:inspect PLUGIN...`](#opentools-pluginsinspect-plugin)
-* [`opentools plugins install PLUGIN`](#opentools-plugins-install-plugin)
-* [`opentools plugins link PATH`](#opentools-plugins-link-path)
-* [`opentools plugins remove [PLUGIN]`](#opentools-plugins-remove-plugin)
-* [`opentools plugins reset`](#opentools-plugins-reset)
-* [`opentools plugins uninstall [PLUGIN]`](#opentools-plugins-uninstall-plugin)
-* [`opentools plugins unlink [PLUGIN]`](#opentools-plugins-unlink-plugin)
-* [`opentools plugins update`](#opentools-plugins-update)
-
-## `opentools hello PERSON`
-
-Say hello
-
-```
-USAGE
-  $ opentools hello PERSON -f <value>
-
-ARGUMENTS
-  PERSON  Person to say hello to
-
-FLAGS
-  -f, --from=<value>  (required) Who is saying hello
-
-DESCRIPTION
-  Say hello
-
-EXAMPLES
-  $ opentools hello friend --from oclif
-  hello friend from oclif! (./src/commands/hello/index.ts)
-```
-
-_See code: [src/commands/hello/index.ts](https://github.com/opentoolsteam/cli/blob/v0.0.0/src/commands/hello/index.ts)_
-
-## `opentools hello world`
-
-Say hello world
-
-```
-USAGE
-  $ opentools hello world
-
-DESCRIPTION
-  Say hello world
-
-EXAMPLES
-  $ opentools hello world
-  hello world! (./src/commands/hello/world.ts)
-```
-
-_See code: [src/commands/hello/world.ts](https://github.com/opentoolsteam/cli/blob/v0.0.0/src/commands/hello/world.ts)_
+* [`opentools plugins:install PLUGIN`](#opentools-pluginsinstall-plugin)
+* [`opentools plugins:link PATH`](#opentools-pluginslink-path)
+* [`opentools plugins:remove [PLUGIN]`](#opentools-pluginsremove-plugin)
+* [`opentools plugins:reset`](#opentools-pluginsreset)
+* [`opentools plugins:uninstall [PLUGIN]`](#opentools-pluginsuninstall-plugin)
+* [`opentools plugins:unlink [PLUGIN]`](#opentools-pluginsunlink-plugin)
+* [`opentools plugins:update`](#opentools-pluginsupdate)
 
 ## `opentools help [COMMAND]`
 
@@ -104,6 +62,66 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.19/src/commands/help.ts)_
+
+## `opentools i SERVER`
+
+Install an MCP server
+
+```
+USAGE
+  $ opentools i SERVER [-c claude|continue]
+
+ARGUMENTS
+  SERVER  name of the MCP server to install
+
+FLAGS
+  -c, --client=<option>  [default: claude] Install the MCP server to this client
+                         <options: claude|continue>
+
+DESCRIPTION
+  Install an MCP server
+
+ALIASES
+  $ opentools i
+
+EXAMPLES
+  $ opentools i server-name
+
+  $ opentools i server-name --client claude
+
+  $ opentools i server-name --client continue
+```
+
+## `opentools install SERVER`
+
+Install an MCP server
+
+```
+USAGE
+  $ opentools install SERVER [-c claude|continue]
+
+ARGUMENTS
+  SERVER  name of the MCP server to install
+
+FLAGS
+  -c, --client=<option>  [default: claude] Install the MCP server to this client
+                         <options: claude|continue>
+
+DESCRIPTION
+  Install an MCP server
+
+ALIASES
+  $ opentools i
+
+EXAMPLES
+  $ opentools install server-name
+
+  $ opentools install server-name --client claude
+
+  $ opentools install server-name --client continue
+```
+
+_See code: [src/commands/install.ts](https://github.com/opentoolsteam/cli/blob/v0.0.1/src/commands/install.ts)_
 
 ## `opentools plugins`
 
@@ -128,13 +146,13 @@ EXAMPLES
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.22/src/commands/plugins/index.ts)_
 
-## `opentools plugins add PLUGIN`
+## `opentools plugins:add PLUGIN`
 
 Installs a plugin into opentools.
 
 ```
 USAGE
-  $ opentools plugins add PLUGIN... [--json] [-f] [-h] [-s | -v]
+  $ opentools plugins:add PLUGIN... [--json] [-f] [-h] [-s | -v]
 
 ARGUMENTS
   PLUGIN...  Plugin to install.
@@ -159,20 +177,20 @@ DESCRIPTION
   Use the OPENTOOLS_NPM_REGISTRY environment variable to set the npm registry.
 
 ALIASES
-  $ opentools plugins add
+  $ opentools plugins:add
 
 EXAMPLES
   Install a plugin from npm registry.
 
-    $ opentools plugins add myplugin
+    $ opentools plugins:add myplugin
 
   Install a plugin from a github url.
 
-    $ opentools plugins add https://github.com/someuser/someplugin
+    $ opentools plugins:add https://github.com/someuser/someplugin
 
   Install a plugin from a github slug.
 
-    $ opentools plugins add someuser/someplugin
+    $ opentools plugins:add someuser/someplugin
 ```
 
 ## `opentools plugins:inspect PLUGIN...`
@@ -181,7 +199,7 @@ Displays installation properties of a plugin.
 
 ```
 USAGE
-  $ opentools plugins inspect PLUGIN...
+  $ opentools plugins:inspect PLUGIN...
 
 ARGUMENTS
   PLUGIN...  [default: .] Plugin to inspect.
@@ -197,18 +215,18 @@ DESCRIPTION
   Displays installation properties of a plugin.
 
 EXAMPLES
-  $ opentools plugins inspect myplugin
+  $ opentools plugins:inspect myplugin
 ```
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.22/src/commands/plugins/inspect.ts)_
 
-## `opentools plugins install PLUGIN`
+## `opentools plugins:install PLUGIN`
 
 Installs a plugin into opentools.
 
 ```
 USAGE
-  $ opentools plugins install PLUGIN... [--json] [-f] [-h] [-s | -v]
+  $ opentools plugins:install PLUGIN... [--json] [-f] [-h] [-s | -v]
 
 ARGUMENTS
   PLUGIN...  Plugin to install.
@@ -233,31 +251,31 @@ DESCRIPTION
   Use the OPENTOOLS_NPM_REGISTRY environment variable to set the npm registry.
 
 ALIASES
-  $ opentools plugins add
+  $ opentools plugins:add
 
 EXAMPLES
   Install a plugin from npm registry.
 
-    $ opentools plugins install myplugin
+    $ opentools plugins:install myplugin
 
   Install a plugin from a github url.
 
-    $ opentools plugins install https://github.com/someuser/someplugin
+    $ opentools plugins:install https://github.com/someuser/someplugin
 
   Install a plugin from a github slug.
 
-    $ opentools plugins install someuser/someplugin
+    $ opentools plugins:install someuser/someplugin
 ```
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.22/src/commands/plugins/install.ts)_
 
-## `opentools plugins link PATH`
+## `opentools plugins:link PATH`
 
 Links a plugin into the CLI for development.
 
 ```
 USAGE
-  $ opentools plugins link PATH [-h] [--install] [-v]
+  $ opentools plugins:link PATH [-h] [--install] [-v]
 
 ARGUMENTS
   PATH  [default: .] path to plugin
@@ -277,18 +295,18 @@ DESCRIPTION
 
 
 EXAMPLES
-  $ opentools plugins link myplugin
+  $ opentools plugins:link myplugin
 ```
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.22/src/commands/plugins/link.ts)_
 
-## `opentools plugins remove [PLUGIN]`
+## `opentools plugins:remove [PLUGIN]`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ opentools plugins remove [PLUGIN...] [-h] [-v]
+  $ opentools plugins:remove [PLUGIN...] [-h] [-v]
 
 ARGUMENTS
   PLUGIN...  plugin to uninstall
@@ -301,20 +319,20 @@ DESCRIPTION
   Removes a plugin from the CLI.
 
 ALIASES
-  $ opentools plugins unlink
-  $ opentools plugins remove
+  $ opentools plugins:unlink
+  $ opentools plugins:remove
 
 EXAMPLES
-  $ opentools plugins remove myplugin
+  $ opentools plugins:remove myplugin
 ```
 
-## `opentools plugins reset`
+## `opentools plugins:reset`
 
 Remove all user-installed and linked plugins.
 
 ```
 USAGE
-  $ opentools plugins reset [--hard] [--reinstall]
+  $ opentools plugins:reset [--hard] [--reinstall]
 
 FLAGS
   --hard       Delete node_modules and package manager related files in addition to uninstalling plugins.
@@ -323,13 +341,13 @@ FLAGS
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.22/src/commands/plugins/reset.ts)_
 
-## `opentools plugins uninstall [PLUGIN]`
+## `opentools plugins:uninstall [PLUGIN]`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ opentools plugins uninstall [PLUGIN...] [-h] [-v]
+  $ opentools plugins:uninstall [PLUGIN...] [-h] [-v]
 
 ARGUMENTS
   PLUGIN...  plugin to uninstall
@@ -342,22 +360,22 @@ DESCRIPTION
   Removes a plugin from the CLI.
 
 ALIASES
-  $ opentools plugins unlink
-  $ opentools plugins remove
+  $ opentools plugins:unlink
+  $ opentools plugins:remove
 
 EXAMPLES
-  $ opentools plugins uninstall myplugin
+  $ opentools plugins:uninstall myplugin
 ```
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.22/src/commands/plugins/uninstall.ts)_
 
-## `opentools plugins unlink [PLUGIN]`
+## `opentools plugins:unlink [PLUGIN]`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ opentools plugins unlink [PLUGIN...] [-h] [-v]
+  $ opentools plugins:unlink [PLUGIN...] [-h] [-v]
 
 ARGUMENTS
   PLUGIN...  plugin to uninstall
@@ -370,20 +388,20 @@ DESCRIPTION
   Removes a plugin from the CLI.
 
 ALIASES
-  $ opentools plugins unlink
-  $ opentools plugins remove
+  $ opentools plugins:unlink
+  $ opentools plugins:remove
 
 EXAMPLES
-  $ opentools plugins unlink myplugin
+  $ opentools plugins:unlink myplugin
 ```
 
-## `opentools plugins update`
+## `opentools plugins:update`
 
 Update installed plugins.
 
 ```
 USAGE
-  $ opentools plugins update [-h] [-v]
+  $ opentools plugins:update [-h] [-v]
 
 FLAGS
   -h, --help     Show CLI help.
