@@ -2,96 +2,20 @@ import {Args, Command, Flags} from '@oclif/core'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import * as os from 'os'
-import {z} from 'zod'
 import * as inquirer from '@inquirer/prompts'
-
-const EnvVariable = z.object({
-  description: z.string(),
-  required: z.boolean().default(true).optional(),
-})
-
-const MCPConfig = z.object({
-  command: z.string(),
-  args: z.array(z.string()),
-  env: z.record(z.string(), EnvVariable),
-})
-
-const MCPServer = z.object({
-  id: z.string().regex(/^[a-z0-9-]+$/),
-  name: z.string(),
-  description: z.string(),
-  publisher: z.object({
-    id: z.string().regex(/^[a-z0-9-]+$/),
-    name: z.string(),
-    url: z.string().url(),
-  }),
-  isOfficial: z.boolean().default(false),
-  sourceUrl: z.string().url(),
-  distribution: z.object({
-    type: z.enum(['npm', 'pip', 'source']),
-    package: z.string().optional(),
-  }),
-  license: z.string().optional(),
-  runtime: z.enum(['node', 'python', 'go', 'other']),
-  config: MCPConfig,
-})
-
-// Infer types from schemas
-export type MCPServerType = z.infer<typeof MCPServer>
+import { servers } from '../data/servers/index.js'
+import type { MCPServerType } from '../data/types.js'
 
 export default class Install extends Command {
-  // Mock function to simulate registry API
-  private async fetchRegistry(): Promise<MCPServerType[]> {
-    // Mock data
-    return [
-      {
-        id: 'browserbase',
-        name: 'Browserbase',
-        description: 'Automate browser interactions in the cloud (e.g. web navigation, data extraction, form filling, and more)',
-        publisher: {
-          id: 'browserbase',
-          name: 'Browserbase Inc.',
-          url: 'https://www.browserbase.com/',
-        },
-        isOfficial: true,
-        sourceUrl: 'https://github.com/browserbase/mcp-server-browserbase/tree/main/browserbase',
-        distribution: {
-          type: 'npm',
-          package: '@browserbasehq/mcp-browserbase',
-        },
-        license: 'MIT',
-        runtime: 'node',
-        config: {
-          command: 'npx',
-          args: ['-y', '@browserbasehq/mcp-browserbase'],
-          env: {
-            'BROWSERBASE_API_KEY': {
-              description: 'Your Browserbase API key. Find it at: https://www.browserbase.com/settings',
-            },
-            'BROWSERBASE_PROJECT_ID': {
-              description: 'Your Browserbase project ID. Find it at: https://www.browserbase.com/settings',
-            },
-          }
-        }
-      },
-    ]
-  }
-
   private async validateServer(serverName: string): Promise<MCPServerType> {
-    try {
-      const servers = await this.fetchRegistry()
-      const server = servers.find(s => s.id === serverName)
-      if (!server) {
-        this.error(`Server "${serverName}" not found in registry`)
-      }
-      return server
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        this.error(`Failed to validate server: ${error.message}`)
-      } else {
-        this.error('An unknown error occurred during server validation')
-      }
+    const server = servers.find(s => s.id === serverName)
+    if (!server) {
+      this.error(`Server "${serverName}" not found in registry`)
     }
+    if (server.distribution?.type === 'source') {
+      this.error(`Server "${serverName}" is a source distribution and cannot via OpenTools (for now). To install, please visit ${server.sourceUrl}`)
+    }
+    return server
   }
 
   static args = {
