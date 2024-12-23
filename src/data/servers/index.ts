@@ -240,6 +240,33 @@ export const servers: MCPServerType[] = [
     }
   },
   {
+    id: "github-ref",
+    name: "GitHub",
+    description: "GitHub repository access and management. A Model Context Protocol reference server.",
+    publisher: {
+      id: "modelcontextprotocol",
+      name: "Anthropic, PBC",
+      url: "https://modelcontextprotocol.io/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/github",
+    distribution: {
+      type: "npm",
+      package: "@modelcontextprotocol/server-github",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-github"],
+      env: {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": {
+          description: "Your GitHub Personal Access Token. Find it at: https://github.com/settings/tokens",
+        }
+      }
+    }
+  },
+  {
     id: "stagehand",
     name: "Stagehand by Browserbase",
     description: "This server enables LLMs to interact with web pages, perform actions, extract data, and observe possible actions in a real browser environment",
