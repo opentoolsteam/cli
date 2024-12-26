@@ -20,7 +20,7 @@ $ npm install -g opentools
 $ opentools COMMAND
 running command...
 $ opentools (--version)
-opentools/0.0.7 darwin-arm64 node-v22.10.0
+opentools/0.0.8 darwin-arm64 node-v22.10.0
 $ opentools --help [COMMAND]
 USAGE
   $ opentools COMMAND
@@ -32,6 +32,9 @@ USAGE
 * [`opentools help [COMMAND]`](#opentools-help-command)
 * [`opentools i SERVER`](#opentools-i-server)
 * [`opentools install SERVER`](#opentools-install-server)
+* [`opentools list`](#opentools-list)
+* [`opentools un SERVER`](#opentools-un-server)
+* [`opentools uninstall SERVER`](#opentools-uninstall-server)
 
 ## `opentools help [COMMAND]`
 
@@ -111,5 +114,84 @@ EXAMPLES
   $ opentools install server-name --client continue
 ```
 
-_See code: [src/commands/install.ts](https://github.com/opentoolsteam/cli/blob/v0.0.7/src/commands/install.ts)_
+_See code: [src/commands/install.ts](https://github.com/opentoolsteam/cli/blob/v0.0.8/src/commands/install.ts)_
+
+## `opentools list`
+
+List installed servers for the specified client
+
+```
+USAGE
+  $ opentools list [-c claude|continue]
+
+FLAGS
+  -c, --client=<option>  [default: claude] client to check (claude or continue)
+                         <options: claude|continue>
+
+DESCRIPTION
+  List installed servers for the specified client
+
+EXAMPLES
+  $ opentools list
+
+  $ opentools list --client=continue
+```
+
+_See code: [src/commands/list.ts](https://github.com/opentoolsteam/cli/blob/v0.0.8/src/commands/list.ts)_
+
+## `opentools un SERVER`
+
+Uninstall an MCP server
+
+```
+USAGE
+  $ opentools un SERVER [-c claude|continue]
+
+ARGUMENTS
+  SERVER  name of the MCP server to uninstall
+
+FLAGS
+  -c, --client=<option>  [default: claude] Uninstall the MCP server from this client
+                         <options: claude|continue>
+
+DESCRIPTION
+  Uninstall an MCP server
+
+ALIASES
+  $ opentools un
+
+EXAMPLES
+  $ opentools un server-name
+
+  $ opentools un server-name --client claude
+```
+
+## `opentools uninstall SERVER`
+
+Uninstall an MCP server
+
+```
+USAGE
+  $ opentools uninstall SERVER [-c claude|continue]
+
+ARGUMENTS
+  SERVER  name of the MCP server to uninstall
+
+FLAGS
+  -c, --client=<option>  [default: claude] Uninstall the MCP server from this client
+                         <options: claude|continue>
+
+DESCRIPTION
+  Uninstall an MCP server
+
+ALIASES
+  $ opentools un
+
+EXAMPLES
+  $ opentools uninstall server-name
+
+  $ opentools uninstall server-name --client claude
+```
+
+_See code: [src/commands/uninstall.ts](https://github.com/opentoolsteam/cli/blob/v0.0.8/src/commands/uninstall.ts)_
 <!-- commandsstop -->
