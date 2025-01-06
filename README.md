@@ -1,22 +1,20 @@
 opentools
 =================
 
-The easiest way to install MCP servers
+A command-line interface (CLI) for managing Model Context Protocol (MCP) servers. This tool makes it easy to install, uninstall, and manage MCP servers for Claude Desktop and Continue clients.
 
-
-[![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/opentools.svg)](https://npmjs.org/package/opentools)
 [![Downloads/week](https://img.shields.io/npm/dw/opentools.svg)](https://npmjs.org/package/opentools)
 
+# Installation
 
-<!-- toc -->
-* [Usage](#usage)
-* [Commands](#commands)
-<!-- tocstop -->
-# Usage
-<!-- usage -->
 ```sh-session
 $ npm install -g opentools
+```
+
+# Usage
+
+```sh-session
 $ opentools COMMAND
 running command...
 $ opentools (--version)
@@ -24,174 +22,70 @@ opentools/0.0.8 darwin-arm64 node-v22.10.0
 $ opentools --help [COMMAND]
 USAGE
   $ opentools COMMAND
-...
 ```
-<!-- usagestop -->
+
 # Commands
-<!-- commands -->
-* [`opentools help [COMMAND]`](#opentools-help-command)
-* [`opentools i SERVER`](#opentools-i-server)
-* [`opentools install SERVER`](#opentools-install-server)
-* [`opentools list`](#opentools-list)
-* [`opentools un SERVER`](#opentools-un-server)
-* [`opentools uninstall SERVER`](#opentools-uninstall-server)
 
-## `opentools help [COMMAND]`
+* `opentools help [COMMAND]` - Display help for opentools
+* `opentools install SERVER` - Install an MCP server (alias: `i`)
+* `opentools uninstall SERVER` - Uninstall an MCP server (alias: `un`)
+* `opentools list` - List installed servers for the specified client
 
-Display help for opentools.
+## Install a Server
 
-```
-USAGE
-  $ opentools help [COMMAND...] [-n]
+```sh
+# Install for Claude Desktop (default)
+$ opentools install server-name
 
-ARGUMENTS
-  COMMAND...  Command to show help for.
-
-FLAGS
-  -n, --nested-commands  Include all nested commands in the output.
-
-DESCRIPTION
-  Display help for opentools.
+# Install for Continue
+$ opentools install server-name --client continue
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.19/src/commands/help.ts)_
+## Uninstall a Server
 
-## `opentools i SERVER`
+```sh
+# Uninstall from Claude Desktop (default)
+$ opentools uninstall server-name
 
-Install an MCP server
-
-```
-USAGE
-  $ opentools i SERVER [-c claude|continue]
-
-ARGUMENTS
-  SERVER  name of the MCP server to install
-
-FLAGS
-  -c, --client=<option>  [default: claude] Install the MCP server to this client
-                         <options: claude|continue>
-
-DESCRIPTION
-  Install an MCP server
-
-ALIASES
-  $ opentools i
-
-EXAMPLES
-  $ opentools i server-name
-
-  $ opentools i server-name --client claude
-
-  $ opentools i server-name --client continue
+# Uninstall from Continue
+$ opentools uninstall server-name --client continue
 ```
 
-## `opentools install SERVER`
+## List Installed Servers
 
-Install an MCP server
+```sh
+# List servers installed on Claude Desktop (default)
+$ opentools list
 
-```
-USAGE
-  $ opentools install SERVER [-c claude|continue]
-
-ARGUMENTS
-  SERVER  name of the MCP server to install
-
-FLAGS
-  -c, --client=<option>  [default: claude] Install the MCP server to this client
-                         <options: claude|continue>
-
-DESCRIPTION
-  Install an MCP server
-
-ALIASES
-  $ opentools i
-
-EXAMPLES
-  $ opentools install server-name
-
-  $ opentools install server-name --client claude
-
-  $ opentools install server-name --client continue
+# List servers installed on Continue
+$ opentools list --client continue
 ```
 
-_See code: [src/commands/install.ts](https://github.com/opentoolsteam/cli/blob/v0.0.8/src/commands/install.ts)_
+# Supported Clients
 
-## `opentools list`
+- Claude Desktop (default)
+- Continue (experimental)
 
-List installed servers for the specified client
+# Available Servers
 
-```
-USAGE
-  $ opentools list [-c claude|continue]
+The CLI provides access to various MCP servers including:
 
-FLAGS
-  -c, --client=<option>  [default: claude] client to check (claude or continue)
-                         <options: claude|continue>
+- AWS Knowledge Base
+- Axiom
+- Brave Search
+- Browserbase
+- EverArt
+- Filesystem
+- GitHub
+- GitLab
+- PostgreSQL
+- Puppeteer
+- Sentry
+- Slack
+- SQLite
+- Time
+- And more...
 
-DESCRIPTION
-  List installed servers for the specified client
+Each server may require specific environment variables or configuration during installation. The CLI will guide you through the setup process.
 
-EXAMPLES
-  $ opentools list
-
-  $ opentools list --client=continue
-```
-
-_See code: [src/commands/list.ts](https://github.com/opentoolsteam/cli/blob/v0.0.8/src/commands/list.ts)_
-
-## `opentools un SERVER`
-
-Uninstall an MCP server
-
-```
-USAGE
-  $ opentools un SERVER [-c claude|continue]
-
-ARGUMENTS
-  SERVER  name of the MCP server to uninstall
-
-FLAGS
-  -c, --client=<option>  [default: claude] Uninstall the MCP server from this client
-                         <options: claude|continue>
-
-DESCRIPTION
-  Uninstall an MCP server
-
-ALIASES
-  $ opentools un
-
-EXAMPLES
-  $ opentools un server-name
-
-  $ opentools un server-name --client claude
-```
-
-## `opentools uninstall SERVER`
-
-Uninstall an MCP server
-
-```
-USAGE
-  $ opentools uninstall SERVER [-c claude|continue]
-
-ARGUMENTS
-  SERVER  name of the MCP server to uninstall
-
-FLAGS
-  -c, --client=<option>  [default: claude] Uninstall the MCP server from this client
-                         <options: claude|continue>
-
-DESCRIPTION
-  Uninstall an MCP server
-
-ALIASES
-  $ opentools un
-
-EXAMPLES
-  $ opentools uninstall server-name
-
-  $ opentools uninstall server-name --client claude
-```
-
-_See code: [src/commands/uninstall.ts](https://github.com/opentoolsteam/cli/blob/v0.0.8/src/commands/uninstall.ts)_
-<!-- commandsstop -->
+For more information about Model Context Protocol, visit [modelcontextprotocol.io](https://modelcontextprotocol.io/).

@@ -88,12 +88,25 @@ export default class Install extends Command {
       )
 
       try {
-        // Check if file exists
-        await fs.access(configPath)
+        let config: any = {}
 
-        // Read and parse the config file
-        const configContent = await fs.readFile(configPath, 'utf-8')
-        const config = JSON.parse(configContent)
+        try {
+          // Check if file exists
+          await fs.access(configPath)
+          // Read and parse the config file
+          const configContent = await fs.readFile(configPath, 'utf-8')
+          config = JSON.parse(configContent)
+        } catch (error: unknown) {
+          if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+            this.log('🆕  Initializing new Claude configuration file...')
+            // Create Claude directory if it doesn't exist
+            await fs.mkdir(path.dirname(configPath), { recursive: true })
+            // Create empty config
+            config = {}
+          } else {
+            throw error // Re-throw if it's not a missing file error
+          }
+        }
 
         // Get server configuration from registry
         const server = await this.validateServer(serverName)
@@ -182,7 +195,7 @@ export default class Install extends Command {
         // Write the updated config back to file
         await fs.writeFile(configPath, JSON.stringify(config, null, 2))
 
-        this.log(`🛠️  Successfully installed ${serverName} 🛠️`)
+        this.log(`🛠️  Successfully installed ${serverName}`)
 
       } catch (error: unknown) {
         if (error instanceof Error) {

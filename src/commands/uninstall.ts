@@ -89,7 +89,7 @@ export default class Uninstall extends Command {
         // Write the updated config back to file
         await fs.writeFile(configPath, JSON.stringify(config, null, 2))
 
-        this.log(`🗑️  Successfully uninstalled ${serverName} 🗑️`)
+        this.log(`🗑️  Successfully uninstalled ${serverName}`)
 
       } catch (error: unknown) {
         if (error instanceof Error) {

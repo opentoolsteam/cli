@@ -615,4 +615,30 @@ export const servers: MCPServerType[] = [
       env: {}
     }
   },
+  {
+    id: "exa",
+    name: "Exa Search",
+    description: "This setup allows AI models to get real-time web information in a safe and controlled way.",
+    publisher: {
+      id: "exa-labs",
+      name: "Exa Labs, Inc.",
+      url: "https://exa.ai",
+    },
+    isOfficial: true,
+    sourceUrl: "https://github.com/exa-labs/exa-mcp-server",
+    distribution: {
+      type: "npm",
+      package: "exa-mcp-server",
+    },
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "exa-mcp-server"],
+      env: {
+        "EXA_API_KEY": {
+          description: "Your Exa API key. Find it at: https://dashboard.exa.ai/api-keys",
+        }
+      }
+    }
+  },
 ]
