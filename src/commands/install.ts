@@ -77,140 +77,186 @@ export default class Install extends Command {
     }
   }
 
-  private async installOnMacOS(serverName: string, client: string): Promise<void> {
+  private getConfigPath(client: string): string {
+    switch (client) {
+      case 'claude':
+        return path.join(
+          os.homedir(),
+          'Library',
+          'Application Support',
+          'Claude',
+          'claude_desktop_config.json'
+        )
+      case 'continue':
+        return path.join(
+          os.homedir(),
+          '.continue',
+          'config.json'
+        )
+      default:
+        throw new Error(`Unsupported client: ${client}`)
+    }
+  }
+
+  private async installMCPServer(configPath: string, serverName: string, client: string): Promise<void> {
+    let config: any = {}
+
+    try {
+      // Check if file exists
+      await fs.access(configPath)
+      // Read and parse the config file
+      const configContent = await fs.readFile(configPath, 'utf-8')
+      config = JSON.parse(configContent)
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        this.log('🆕  Initializing new configuration file...')
+        // Create directory if it doesn't exist
+        await fs.mkdir(path.dirname(configPath), { recursive: true })
+        // Create empty config
+        config = {}
+      } else {
+        throw error // Re-throw if it's not a missing file error
+      }
+    }
+
+    // Get server configuration from registry
+    const server = await this.validateServer(serverName)
+    const serverConfig = server.config
+
+    // Handle runtime arguments if they exist
+    let finalArgs = [...serverConfig.args]
+    if (serverConfig.runtimeArgs) {
+      const runtimeArg = serverConfig.runtimeArgs
+      let answer: any
+
+      // Special case for filesystem-ref server
+      let defaultValue = runtimeArg.default
+      if (serverName === 'filesystem-ref' && Array.isArray(defaultValue)) {
+        defaultValue = defaultValue.map(path =>
+          path.replace('username', os.userInfo().username)
+        )
+      }
+
+      if (runtimeArg.multiple) {
+        // First get the default path
+        answer = await inquirer.input({
+          message: runtimeArg.description,
+          default: Array.isArray(defaultValue) ? defaultValue.join(', ') : defaultValue,
+        })
+        let paths = answer.split(',').map((s: string) => s.trim())
+
+        // Keep asking for additional paths
+        while (true) {
+          const additionalPath = await inquirer.input({
+            message: "Add another allowed directory path? (press Enter to finish)",
+            default: "",
+          })
+
+          if (!additionalPath.trim()) {
+            break
+          }
+
+          paths.push(additionalPath.trim())
+        }
+
+        answer = paths
+      } else {
+        answer = await inquirer.input({
+          message: runtimeArg.description,
+          default: defaultValue,
+        })
+      }
+
+      // Add runtime arguments to args array
+      if (Array.isArray(answer)) {
+        finalArgs.push(...answer)
+      } else {
+        finalArgs.push(answer)
+      }
+    }
+
+    // Collect environment variables
+    const envVars = serverConfig.env
+    const answers: Record<string, string> = {}
+
+    for (const [key, value] of Object.entries(envVars)) {
+      const answer = await inquirer.input({
+        message: value.description,
+        validate: (input: string) => {
+          if (value.required !== false && !input) {
+            return `${key} is required`
+          }
+          return true
+        }
+      })
+      // Only add non-empty values to answers
+      if (answer.trim()) {
+        answers[key] = answer
+      }
+    }
+
+    // Update the config based on client type
     if (client === 'claude') {
-      const configPath = path.join(
-        os.homedir(),
-        'Library',
-        'Application Support',
-        'Claude',
-        'claude_desktop_config.json'
+      config.mcpServers = config.mcpServers || {}
+      config.mcpServers[serverName] = {
+        command: serverConfig.command,
+        args: finalArgs,
+        env: answers
+      }
+    } else if (client === 'continue') {
+      // Initialize experimental if it doesn't exist
+      if (!config.experimental) {
+        config.experimental = {}
+      }
+
+      // Always set useTools to true
+      config.experimental.useTools = true
+
+      // Initialize modelContextProtocolServers if it doesn't exist
+      config.experimental.modelContextProtocolServers = config.experimental.modelContextProtocolServers || []
+
+      const serverTransport = {
+        type: 'stdio',
+        command: serverConfig.command,
+        args: finalArgs,
+        env: answers
+      }
+
+      // Find if server already exists in the array
+      const existingServerIndex = config.experimental.modelContextProtocolServers.findIndex(
+        (s: any) => s.transport.command === serverConfig.command &&
+                   JSON.stringify(s.transport.args) === JSON.stringify(finalArgs)
       )
 
-      try {
-        let config: any = {}
-
-        try {
-          // Check if file exists
-          await fs.access(configPath)
-          // Read and parse the config file
-          const configContent = await fs.readFile(configPath, 'utf-8')
-          config = JSON.parse(configContent)
-        } catch (error: unknown) {
-          if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            this.log('🆕  Initializing new Claude configuration file...')
-            // Create Claude directory if it doesn't exist
-            await fs.mkdir(path.dirname(configPath), { recursive: true })
-            // Create empty config
-            config = {}
-          } else {
-            throw error // Re-throw if it's not a missing file error
-          }
-        }
-
-        // Get server configuration from registry
-        const server = await this.validateServer(serverName)
-        const serverConfig = server.config
-
-        // Handle runtime arguments if they exist
-        let finalArgs = [...serverConfig.args]
-        if (serverConfig.runtimeArgs) {
-          const runtimeArg = serverConfig.runtimeArgs
-          let answer: any
-
-          // Special case for filesystem-ref server
-          let defaultValue = runtimeArg.default
-          if (serverName === 'filesystem-ref' && Array.isArray(defaultValue)) {
-            defaultValue = defaultValue.map(path =>
-              path.replace('username', os.userInfo().username)
-            )
-          }
-
-          if (runtimeArg.multiple) {
-            // First get the default path
-            answer = await inquirer.input({
-              message: runtimeArg.description,
-              default: Array.isArray(defaultValue) ? defaultValue.join(', ') : defaultValue,
-            })
-            let paths = answer.split(',').map((s: string) => s.trim())
-
-            // Keep asking for additional paths
-            while (true) {
-              const additionalPath = await inquirer.input({
-                message: "Add another allowed directory path? (press Enter to finish)",
-                default: "",
-              })
-
-              if (!additionalPath.trim()) {
-                break
-              }
-
-              paths.push(additionalPath.trim())
-            }
-
-            answer = paths
-          } else {
-            answer = await inquirer.input({
-              message: runtimeArg.description,
-              default: defaultValue,
-            })
-          }
-
-          // Add runtime arguments to args array
-          if (Array.isArray(answer)) {
-            finalArgs.push(...answer)
-          } else {
-            finalArgs.push(answer)
-          }
-        }
-
-        // Collect environment variables
-        const envVars = serverConfig.env
-        const answers: Record<string, string> = {}
-
-        for (const [key, value] of Object.entries(envVars)) {
-          const answer = await inquirer.input({
-            message: value.description,
-            validate: (input: string) => {
-              if (value.required !== false && !input) {
-                return `${key} is required`
-              }
-              return true
-            }
-          })
-          // Only add non-empty values to answers
-          if (answer.trim()) {
-            answers[key] = answer
-          }
-        }
-
-        // Update the config with the new server and environment variables
-        config.mcpServers = config.mcpServers || {}
-        config.mcpServers[serverName] = {
-          command: serverConfig.command,
-          args: finalArgs,
-          env: answers
-        }
-
-        // Write the updated config back to file
-        await fs.writeFile(configPath, JSON.stringify(config, null, 2))
-
-        this.log(`🛠️  Successfully installed ${serverName}`)
-
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          if ('code' in error && error.code === 'ENOENT') {
-            this.error(`Config file not found at ${configPath}. Is Claude Desktop installed?`)
-          } else {
-            this.error(`Error reading config: ${error.message}`)
-          }
-        } else {
-          this.error('An unknown error occurred')
-        }
+      if (existingServerIndex >= 0) {
+        config.experimental.modelContextProtocolServers[existingServerIndex].transport = serverTransport
+      } else {
+        config.experimental.modelContextProtocolServers.push({
+          transport: serverTransport
+        })
       }
-    } else {
-      // TODO: Handle 'continue' client case
-      throw new Error('Continue client installation not implemented yet')
+    }
+
+    // Write the updated config back to file
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2))
+
+    this.log(`🛠️  Successfully installed ${serverName}`)
+  }
+
+  private async installOnMacOS(serverName: string, client: string): Promise<void> {
+    const configPath = this.getConfigPath(client)
+    try {
+      await this.installMCPServer(configPath, serverName, client)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        if ('code' in error && error.code === 'ENOENT') {
+          this.error(`Config file not found at ${configPath}. Is ${client} installed?`)
+        } else {
+          this.error(`Error reading config: ${error.message}`)
+        }
+      } else {
+        this.error('An unknown error occurred')
+      }
     }
   }
 

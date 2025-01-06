@@ -2,6 +2,8 @@ import {Args, Command, Flags} from '@oclif/core'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import * as os from 'os'
+import { servers } from '../data/servers/index.js'
+import type { MCPServerType } from '../data/types.js'
 
 export default class Uninstall extends Command {
   static override args = {
@@ -95,6 +97,63 @@ export default class Uninstall extends Command {
         if (error instanceof Error) {
           if ('code' in error && error.code === 'ENOENT') {
             this.error(`Config file not found at ${configPath}. Is Claude Desktop installed?`)
+          } else {
+            this.error(`Error reading config: ${error.message}`)
+          }
+        } else {
+          this.error('An unknown error occurred')
+        }
+      }
+    } else if (client === 'continue') {
+      const configPath = path.join(
+        os.homedir(),
+        '.continue',
+        'config.json'
+      )
+
+      try {
+        // Check if file exists
+        await fs.access(configPath)
+
+        // Read and parse the config file
+        const configContent = await fs.readFile(configPath, 'utf-8')
+        const config = JSON.parse(configContent)
+
+        // Check if experimental and modelContextProtocolServers exist
+        if (!config.experimental?.modelContextProtocolServers?.length) {
+          this.error(`No MCP servers are installed`)
+          return
+        }
+
+        // Find the server in the array by matching command and args that would have been used during installation
+        const serverIndex = config.experimental.modelContextProtocolServers.findIndex((s: any) => {
+          const server = servers.find(srv => srv.id === serverName)
+          if (!server) return false
+
+          return s.transport.command === server.config.command &&
+                 JSON.stringify(s.transport.args.slice(0, server.config.args.length)) === JSON.stringify(server.config.args)
+        })
+
+        if (serverIndex === -1) {
+          this.error(`Server "${serverName}" is not installed`)
+          return
+        }
+
+        // Remove the server from the array
+        config.experimental.modelContextProtocolServers.splice(serverIndex, 1)
+
+        // If no servers left, we could optionally set useTools to false, but we'll leave it
+        // as is since there might be other tools configured
+
+        // Write the updated config back to file
+        await fs.writeFile(configPath, JSON.stringify(config, null, 2))
+
+        this.log(`🗑️  Successfully uninstalled ${serverName}`)
+
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          if ('code' in error && error.code === 'ENOENT') {
+            this.error(`Config file not found at ${configPath}. Is Continue installed?`)
           } else {
             this.error(`Error reading config: ${error.message}`)
           }
