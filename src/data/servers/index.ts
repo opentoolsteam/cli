@@ -47,11 +47,15 @@ export const servers: MCPServerType[] = [
     sourceUrl: "https://github.com/axiomhq/mcp-server-axiom",
     distribution: {
       type: "source",
+      source: {
+        path: "github.com/axiomhq/axiom-mcp@latest",
+        binary: "axiom-mcp"
+      }
     },
     license: "MIT",
     runtime: "go",
     config: {
-      command: "",
+      command: "${HOME}/go/bin/axiom-mcp",
       args: [],
       env: {
         "AXIOM_TOKEN": {
@@ -110,31 +114,31 @@ export const servers: MCPServerType[] = [
     }
   },
   {
-    id: 'browserbase',
-    name: 'Browserbase',
-    description: 'Automate browser interactions in the cloud (e.g. web navigation, data extraction, form filling, and more)',
+    id: "browserbase",
+    name: "Browserbase",
+    description: "Automate browser interactions in the cloud (e.g. web navigation, data extraction, form filling, and more)",
     publisher: {
-      id: 'browserbase',
-      name: 'Browserbase Inc.',
-      url: 'https://www.browserbase.com/',
+      id: "browserbase",
+      name: "Browserbase Inc.",
+      url: "https://www.browserbase.com/",
     },
     isOfficial: true,
-    sourceUrl: 'https://github.com/browserbase/mcp-server-browserbase/tree/main/browserbase',
+    sourceUrl: "https://github.com/browserbase/mcp-server-browserbase/tree/main/browserbase",
     distribution: {
-      type: 'npm',
-      package: '@browserbasehq/mcp-browserbase',
+      type: "npm",
+      package: "@browserbasehq/mcp-browserbase",
     },
-    license: 'MIT',
-    runtime: 'node',
+    license: "MIT",
+    runtime: "node",
     config: {
-      command: 'npx',
-      args: ['-y', '@browserbasehq/mcp-browserbase'],
+      command: "npx",
+      args: ["-y", "@browserbasehq/mcp-browserbase"],
       env: {
-        'BROWSERBASE_API_KEY': {
-          description: 'Your Browserbase API key. Find it at: https://www.browserbase.com/settings',
+        "BROWSERBASE_API_KEY": {
+          description: "Your Browserbase API key. Find it at: https://www.browserbase.com/settings",
         },
-        'BROWSERBASE_PROJECT_ID': {
-          description: 'Your Browserbase project ID. Find it at: https://www.browserbase.com/settings',
+        "BROWSERBASE_PROJECT_ID": {
+          description: "Your Browserbase project ID. Find it at: https://www.browserbase.com/settings",
         },
       }
     }
@@ -187,6 +191,32 @@ export const servers: MCPServerType[] = [
       command: "npx",
       args: ["-y", "@modelcontextprotocol/server-everything"],
       env: {}
+    }
+  },
+  {
+    id: "exa",
+    name: "Exa Search",
+    description: "This setup allows AI models to get real-time web information in a safe and controlled way.",
+    publisher: {
+      id: "exa-labs",
+      name: "Exa Labs, Inc.",
+      url: "https://exa.ai",
+    },
+    isOfficial: true,
+    sourceUrl: "https://github.com/exa-labs/exa-mcp-server",
+    distribution: {
+      type: "npm",
+      package: "exa-mcp-server",
+    },
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "exa-mcp-server"],
+      env: {
+        "EXA_API_KEY": {
+          description: "Your Exa API key. Find it at: https://dashboard.exa.ai/api-keys",
+        }
+      }
     }
   },
   {
@@ -613,32 +643,6 @@ export const servers: MCPServerType[] = [
       command: "uvx",
       args: ["mcp-server-time"],
       env: {}
-    }
-  },
-  {
-    id: "exa",
-    name: "Exa Search",
-    description: "This setup allows AI models to get real-time web information in a safe and controlled way.",
-    publisher: {
-      id: "exa-labs",
-      name: "Exa Labs, Inc.",
-      url: "https://exa.ai",
-    },
-    isOfficial: true,
-    sourceUrl: "https://github.com/exa-labs/exa-mcp-server",
-    distribution: {
-      type: "npm",
-      package: "exa-mcp-server",
-    },
-    runtime: "node",
-    config: {
-      command: "npx",
-      args: ["-y", "exa-mcp-server"],
-      env: {
-        "EXA_API_KEY": {
-          description: "Your Exa API key. Find it at: https://dashboard.exa.ai/api-keys",
-        }
-      }
     }
   },
 ]

@@ -32,6 +32,10 @@ export const MCPServer = z.object({
   distribution: z.object({
     type: z.enum(['npm', 'pip', 'source']),
     package: z.string().optional(),
+    source: z.object({
+      path: z.string(),
+      binary: z.string()
+    }).optional(),
   }),
   license: z.string().optional(),
   runtime: z.enum(['node', 'python', 'go', 'other']),
