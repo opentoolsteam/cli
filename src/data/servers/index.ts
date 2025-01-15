@@ -430,6 +430,29 @@ export const servers: MCPServerType[] = [
     }
   },
   {
+    id: "playwright-mcp-server",
+    name: "Playwright",
+    description: "This server enables LLMs to interact with web pages, take screenshots, and execute JavaScript in a real browser environment using Playwright.",
+    publisher: {
+      id: "executeautomation",
+      name: "ExecuteAutomation",
+      url: "https://github.com/executeautomation",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/executeautomation/mcp-playwright",
+    distribution: {
+      type: "npm",
+      package: "@executeautomation/playwright-mcp-server",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "@executeautomation/playwright-mcp-server"],
+      env: {}
+    }
+  },
+  {
     id: "postgres-ref",
     name: "PostgreSQL",
     description: "Read-only local PostgreSQL database access with schema inspection. A Model Context Protocol reference server.",

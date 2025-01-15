@@ -37,9 +37,11 @@
     "/dist",
     "/oclif.manifest.json"
   ],
-  "homepage": "https://github.com/opentoolsteam/cli",
+  "homepage": "https://opentools.com",
   "keywords": [
-    "oclif"
+    "modelcontextprotocol",
+    "mcp",
+    "opentools"
   ],
   "license": "MIT",
   "main": "dist/index.js",
