@@ -83,7 +83,7 @@ export default class List extends Command {
         // Display registered servers first
         registeredServers.forEach((serverId, index) => {
           const prefix = index === registeredServers.length - 1 && unknownServers.length === 0 ? '└── ' : '├── '
-          const link = `\u001B]8;;https://opentools.computer/registry/${serverId}\u0007${serverId}\u001B]8;;\u0007`
+          const link = `\u001B]8;;https://opentools.com/registry/${serverId}\u0007${serverId}\u001B]8;;\u0007`
           this.log(`${prefix}${link}`)
         })
 
@@ -136,7 +136,7 @@ export default class List extends Command {
         // Print servers in a tree-like format
         validServers.forEach((serverId, index) => {
           const prefix = index === validServers.length - 1 ? '└── ' : '├── '
-          const link = `\u001B]8;;https://opentools.computer/registry/${serverId}\u0007${serverId}\u001B]8;;\u0007`
+          const link = `\u001B]8;;https://opentools.com/registry/${serverId}\u0007${serverId}\u001B]8;;\u0007`
           this.log(`${prefix}${link}`)
         })
         return true
