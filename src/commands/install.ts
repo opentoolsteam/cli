@@ -5,8 +5,22 @@ import * as os from 'os'
 import * as inquirer from '@inquirer/prompts'
 import { servers } from '../data/servers/index.js'
 import type { MCPServerType } from '../data/types.js'
+import { promisify } from 'util'
+import { exec } from 'child_process'
+
+const execAsync = promisify(exec)
 
 export default class Install extends Command {
+  private clientDisplayNames: Record<string, string> = {
+    'claude': 'Claude Desktop',
+    'continue': 'Continue'
+  }
+
+  private clientProcessNames: Record<string, string> = {
+    'claude': 'Claude',
+    'continue': 'Continue'
+  }
+
   private async validateServer(serverName: string): Promise<MCPServerType> {
     const server = servers.find(s => s.id === serverName)
     if (!server) {
@@ -43,39 +57,6 @@ export default class Install extends Command {
   }
 
   static aliases = ['i']
-
-  public async run(): Promise<void> {
-    const {args, flags} = await this.parse(Install)
-
-    // Validate server exists in registry
-    const server = await this.validateServer(args.server)
-
-    // Detect operating system
-    const platform = process.platform
-
-    if (platform !== 'darwin' && platform !== 'win32') {
-      this.error('This command is only supported on macOS and Windows')
-      return
-    }
-
-    this.log(`Installing MCP server: ${args.server}`)
-    this.log(`Platform: ${platform === 'darwin' ? 'macOS' : 'Windows'}`)
-    this.log(`Client: ${flags.client}`)
-
-    try {
-      if (platform === 'darwin') {
-        await this.installOnMacOS(args.server, flags.client)
-      } else {
-        await this.installOnWindows(args.server, flags.client)
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        this.error(`Failed to install server: ${error.message}`)
-      } else {
-        this.error('An unknown error occurred during installation')
-      }
-    }
-  }
 
   private getConfigPath(client: string): string {
     switch (client) {
@@ -263,5 +244,148 @@ export default class Install extends Command {
   private async installOnWindows(serverName: string, client: string): Promise<void> {
     // TODO: Implement Windows-specific installation logic
     throw new Error('Windows installation not implemented yet')
+  }
+
+  private async promptForRestart(client: string): Promise<void> {
+    const answer = await inquirer.confirm({
+      message: `Would you like to restart ${this.clientDisplayNames[client]} to apply changes?`,
+      default: true,
+    })
+
+    if (answer) {
+      this.log(`Restarting ${this.clientDisplayNames[client]}...`)
+      await this.restartClient(client)
+    }
+  }
+
+  private async restartClient(client: string): Promise<void> {
+    const processName = this.clientProcessNames[client]
+    if (!processName) {
+      throw new Error(`Unknown client: ${client}`)
+    }
+
+    try {
+      const platform = process.platform
+      if (platform === 'darwin') {
+        if (client === 'continue') {
+          try {
+            // First, find VS Code's installation location
+            const findVSCode = await execAsync('mdfind "kMDItemCFBundleIdentifier == \'com.microsoft.VSCode\'" | head -n1')
+            const vscodePath = findVSCode.stdout.trim()
+
+            if (vscodePath) {
+              const electronPath = path.join(vscodePath, 'Contents/MacOS/Electron')
+              // Check if VS Code is running using the found path
+              const vscodeProcesses = await execAsync(`pgrep -fl "${electronPath}"`)
+              if (vscodeProcesses.stdout.trim().length > 0) {
+                // Use pkill with full path to ensure we only kill VS Code's Electron
+                await execAsync(`pkill -f "${electronPath}"`)
+                await new Promise(resolve => setTimeout(resolve, 2000))
+                await execAsync(`open -a "Visual Studio Code"`)
+                this.log(`✨ Continue (VS Code) has been restarted`)
+                return
+              }
+            }
+          } catch (error) {
+            // VS Code not found or error in detection, try JetBrains
+            try {
+              const jetbrainsProcesses = await execAsync('pgrep -fl "IntelliJ IDEA.app"')
+              if (jetbrainsProcesses.stdout.trim().length > 0) {
+                await execAsync(`killall "idea"`)
+                await new Promise(resolve => setTimeout(resolve, 2000))
+                await execAsync(`open -a "IntelliJ IDEA"`)
+                this.log(`✨ Continue (IntelliJ IDEA) has been restarted`)
+                return
+              }
+            } catch {
+              // JetBrains not found
+            }
+          }
+
+          throw new Error('Could not detect running IDE (VS Code or JetBrains) for Continue')
+        } else {
+          // For other clients like Claude, use the normal process
+          await execAsync(`killall "${processName}"`)
+          await new Promise(resolve => setTimeout(resolve, 2000))
+          await execAsync(`open -a "${processName}"`)
+          this.log(`✨ ${this.clientDisplayNames[client]} has been restarted`)
+        }
+      } else if (platform === 'win32') {
+        if (client === 'continue') {
+          try {
+            const vscodeProcess = await execAsync('tasklist /FI "IMAGENAME eq Code.exe" /FO CSV /NH')
+            if (vscodeProcess.stdout.includes('Code.exe')) {
+              await execAsync('taskkill /F /IM "Code.exe" && start "" "Visual Studio Code"')
+              this.log(`✨ VS Code has been restarted`)
+              return
+            }
+
+            const jetbrainsProcess = await execAsync('tasklist /FI "IMAGENAME eq idea64.exe" /FO CSV /NH')
+            if (jetbrainsProcess.stdout.includes('idea64.exe')) {
+              await execAsync('taskkill /F /IM "idea64.exe" && start "" "IntelliJ IDEA"')
+              this.log(`✨ IntelliJ IDEA has been restarted`)
+              return
+            }
+          } catch (error) {
+            // Process detection failed
+          }
+
+          throw new Error('Could not detect running IDE (VS Code or JetBrains) for Continue')
+        } else {
+          // For other clients
+          await execAsync(`taskkill /F /IM "${processName}.exe" && start "" "${processName}.exe"`)
+          this.log(`✨ ${this.clientDisplayNames[client]} has been restarted`)
+        }
+      } else {
+        throw new Error('This command is only supported on macOS and Windows')
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        // Check if the error is just that no matching processes were found
+        if (error.message.includes('No matching processes') || error.message.includes('not found')) {
+          this.error(`${this.clientDisplayNames[client]} does not appear to be running`)
+        } else {
+          this.error(`Failed to restart ${this.clientDisplayNames[client]}: ${error.message}`)
+        }
+      } else {
+        this.error(`Failed to restart ${this.clientDisplayNames[client]}`)
+      }
+    }
+  }
+
+  public async run(): Promise<void> {
+    const {args, flags} = await this.parse(Install)
+
+    // Validate server exists in registry
+    const server = await this.validateServer(args.server)
+
+    // Detect operating system
+    const platform = process.platform
+
+    if (platform !== 'darwin' && platform !== 'win32') {
+      this.error('This command is only supported on macOS and Windows')
+      return
+    }
+
+    this.log(`Installing MCP server: ${args.server}`)
+    this.log(`Platform: ${platform === 'darwin' ? 'macOS' : 'Windows'}`)
+    this.log(`Client: ${flags.client}`)
+
+    try {
+      if (platform === 'darwin') {
+        await this.installOnMacOS(args.server, flags.client)
+      } else {
+        await this.installOnWindows(args.server, flags.client)
+      }
+
+      // After successful installation, prompt for restart
+      await this.promptForRestart(flags.client)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.error(`Failed to install server: ${error.message}`)
+      } else {
+        this.error('An unknown error occurred during installation')
+      }
+    }
   }
 }
