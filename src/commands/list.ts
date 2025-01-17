@@ -55,6 +55,8 @@ export default class List extends Command {
         this.log('No MCP servers currently installed.')
       }
     }
+
+    this.log('') // Add final newline
   }
 
   private async listClaudeServers(): Promise<boolean> {
@@ -71,27 +73,32 @@ export default class List extends Command {
       const config = JSON.parse(configContent)
       const installedServers = Object.keys(config.mcpServers || {})
 
-      // Filter to only include servers that exist in the registry
-      const validServers = installedServers.filter(serverId =>
-        servers.some(s => s.id === serverId)
-      )
-
-      // Only output if there are valid servers
-      if (validServers.length > 0) {
+      if (installedServers.length > 0) {
         this.log(`\n${this.clientDisplayNames['claude']}`)
-        // Print servers in a tree-like format
-        validServers.forEach((serverId, index) => {
-          const prefix = index === validServers.length - 1 ? '└── ' : '├── '
+
+        // Sort servers into registered and unknown
+        const registeredServers = installedServers.filter(id => servers.some(s => s.id === id))
+        const unknownServers = installedServers.filter(id => !servers.some(s => s.id === id))
+
+        // Display registered servers first
+        registeredServers.forEach((serverId, index) => {
+          const prefix = index === registeredServers.length - 1 && unknownServers.length === 0 ? '└── ' : '├── '
           const link = `\u001B]8;;https://opentools.computer/registry/${serverId}\u0007${serverId}\u001B]8;;\u0007`
           this.log(`${prefix}${link}`)
         })
+
+        // Then display unknown servers
+        unknownServers.forEach((serverId, index) => {
+          const prefix = index === unknownServers.length - 1 ? '└── ' : '├── '
+          this.log(`\x1b[31m${prefix}${serverId} (unknown)\x1b[0m`)
+        })
+
         return true
       }
       return false
 
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-        // Don't output anything if client not installed
         return false
       } else {
         throw error
