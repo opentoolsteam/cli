@@ -11,6 +11,8 @@ import { exec } from 'child_process'
 const execAsync = promisify(exec)
 
 export default class Install extends Command {
+  private CLIENTS_REQUIRING_RESTART: string[] = ['claude']
+  
   private clientDisplayNames: Record<string, string> = {
     'claude': 'Claude Desktop',
     'continue': 'Continue'
@@ -379,7 +381,9 @@ export default class Install extends Command {
       }
 
       // After successful installation, prompt for restart
-      await this.promptForRestart(flags.client)
+      if (this.CLIENTS_REQUIRING_RESTART.includes(flags.client)) {
+        await this.promptForRestart(flags.client)
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         this.error(`Failed to install server: ${error.message}`)
