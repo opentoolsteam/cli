@@ -144,6 +144,33 @@ export const servers: MCPServerType[] = [
     }
   },
   {
+    id: "chakra",
+    name: "Chakra",
+    description: "Integrate data from the open data marketplace and your organization natively into chat.",
+    publisher: {
+      id: "chakra",
+      name: "Chakra",
+      url: "https://chakra.dev/",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/Chakra-Network/mcp-server",
+    distribution: {
+      type: "pip",
+      package: "chakra-mcp",
+    },
+    license: "MIT",
+    runtime: "python",
+    config: {
+      command: "uvx",
+      args: ["chakra-mcp"],
+      env: {
+        "db_session_key": {
+          description: "Your Chakra database session key. Find it at: https://console.chakra.dev/settings",
+        }
+      }
+    }
+  },
+  {
     id: "everart-ref",
     name: "EverArt",
     description: "AI image generation using various models using EverArt. A Model Context Protocol reference server.",
