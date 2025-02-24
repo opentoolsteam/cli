@@ -148,11 +148,11 @@ export const servers: MCPServerType[] = [
     name: "Chakra",
     description: "Integrate data from the open data marketplace and your organization natively into chat.",
     publisher: {
-      id: "chakra",
-      name: "Chakra",
+      id: "Chakra-Network",
+      name: "Chakra Digital Labs, Inc.",
       url: "https://chakra.dev/",
     },
-    isOfficial: false,
+    isOfficial: true,
     sourceUrl: "https://github.com/Chakra-Network/mcp-server",
     distribution: {
       type: "pip",
