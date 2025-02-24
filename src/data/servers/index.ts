@@ -146,7 +146,7 @@ export const servers: MCPServerType[] = [
   {
     id: "chakra",
     name: "Chakra",
-    description: "Integrate data the open data marketplace and your organization natively into chat.",
+    description: "Integrate data from the open data marketplace and your organization natively into chat.",
     publisher: {
       id: "chakra",
       name: "Chakra",
