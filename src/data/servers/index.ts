@@ -170,6 +170,33 @@ export const servers: MCPServerType[] = [
       }
     }
   },
+  
+  {
+    id: "code-sandbox-mcp",
+    name: "Code Sandbox MCP",
+    description: "An MCP server to create secure code sandbox environment for executing code within Docker containers.",
+    publisher: {
+      id: "automatalabs",
+      name: "Automata Labs Team",
+      url: "https://automatalabs.io",
+    },
+    isOfficial: true,
+    sourceUrl: "https://github.com/Automata-Labs-team/code-sandbox-mcp",
+    distribution: {
+      type: "source",
+      source: {
+        path: "github.com/Automata-Labs-team/code-sandbox-mcp@latest",
+        binary: "code-sandbox-mcp"
+      }
+    },
+    license: "MIT",
+    runtime: "go",
+    config: {
+      command: "${HOME}/${USER}/.local/share/code-sandbox-mcp/code-sandbox-mcp",
+      args: [],
+      env: {}
+    }
+  },
   {
     id: "everart-ref",
     name: "EverArt",
