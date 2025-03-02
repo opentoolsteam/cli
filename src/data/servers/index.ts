@@ -270,6 +270,33 @@ export const servers: MCPServerType[] = [
     }
   },
   {
+    id: "figma-developer-mcp",
+    name: "Figma",
+    description: "Give your coding agent direct access to Figma design data, make it way better at one-shotting design implementation.",
+    publisher: {
+      id: "glipsman",
+      name: "Graham Lipsman",
+      url: "https://github.com/GLips/Figma-Context-MCP",
+    },
+    isOfficial: false,
+    sourceUrl: "https://github.com/GLips/Figma-Context-MCP",
+    distribution: {
+      type: "npm",
+      package: "figma-developer-mcp",
+    },
+    license: "MIT",
+    runtime: "node",
+    config: {
+      command: "npx",
+      args: ["-y", "figma-developer-mcp", "--stdio"],
+      env: {
+        "FIGMA_API_KEY": {
+          description: "Your Figma API access token, get it here: https://www.figma.com/developers/api#access-tokens",
+        }
+      }
+    }
+  },
+  {
     id: "filesystem-ref",
     name: "Filesystem",
     description: "Local filesystem access with configurable allowed paths. A Model Context Protocol reference server.",
