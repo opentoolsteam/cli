@@ -2,6 +2,34 @@ import type { MCPServerType } from '../types.js'
 
 export const servers: MCPServerType[] = [
   {
+    id: 'artemis',
+    name: 'Artemis Analytics',
+    description: 'Pull the latest fundamental crypto data from Artemis natively into you favorite chatbot interface.',
+    publisher: {
+      id: 'Artemis-xyz',
+      name: 'Artemis Analytics Inc.',
+      url: 'https://www.artemis.xyz/',
+    },
+    isOfficial: true,
+    sourceUrl: 'https://github.com/Artemis-xyz/artemis-mcp',
+    distribution: {
+      type: 'pip',
+      package: 'artemis-mcp',
+    },
+    license: 'MIT',
+    runtime: 'python',
+    config:
+      {
+        command: 'uvx',
+        args: ['artemis-mcp'],
+        env: {
+          ARTEMIS_API_KEY: {
+            description: 'Your Artemis API key from https://app.artemis.xyz/settings.',
+          }
+        }
+    }
+  },
+  {
     id: "aws-kb-retrieval-server-ref",
     name: "AWS Knowledge Base",
     description: "Retrieval from AWS Knowledge Base using Bedrock Agent Runtime. A Model Context Protocol reference server.",
