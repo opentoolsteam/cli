@@ -1,6 +1,7 @@
 import {runCommand} from '@oclif/test'
 import {expect} from 'chai'
-import * as sinon from 'sinon'
+import sinon from 'sinon'
+
 import List from '../../src/commands/list.js'
 
 describe('list', () => {
@@ -9,8 +10,8 @@ describe('list', () => {
 
   beforeEach(() => {
     // Create stubs for the private methods
-    listClaudeServersStub = sinon.stub(List.prototype as any, 'listClaudeServers')
-    listContinueServersStub = sinon.stub(List.prototype as any, 'listContinueServers')
+    listClaudeServersStub = sinon.stub(List.prototype, 'listClaudeServers' as keyof typeof List.prototype)
+    listContinueServersStub = sinon.stub(List.prototype, 'listContinueServers' as keyof typeof List.prototype)
 
     // Make both methods return false (no servers found)
     listClaudeServersStub.resolves(false)

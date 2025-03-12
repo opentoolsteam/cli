@@ -6,8 +6,7 @@ describe('uninstall', () => {
     try {
       await runCommand('uninstall')
       expect.fail('Command should have failed without server name')
-    } catch (error: any) {
-      // The actual error message might be different, so we're just checking that we got an error
+    } catch (error: unknown) {
       expect(error).to.exist
     }
   })
@@ -17,8 +16,7 @@ describe('uninstall', () => {
       // This will fail because the servers don't exist, but we can test the argument parsing
       await runCommand('uninstall server1 server2')
       expect.fail('Command should have failed with nonexistent servers')
-    } catch (error: any) {
-      // Just check that we got an error
+    } catch (error: unknown) {
       expect(error).to.exist
     }
   })

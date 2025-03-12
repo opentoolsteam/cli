@@ -6,7 +6,7 @@ describe('install', () => {
     try {
       await runCommand('install')
       expect.fail('Command should have failed without server name')
-    } catch (error: any) {
+    } catch (error: unknown) {
       expect(error).to.exist
     }
   })
@@ -15,7 +15,7 @@ describe('install', () => {
     try {
       await runCommand('install nonexistent-server')
       expect.fail('Command should have failed with nonexistent server')
-    } catch (error: any) {
+    } catch (error: unknown) {
       expect(error).to.exist
     }
   })

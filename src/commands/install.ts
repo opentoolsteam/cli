@@ -112,7 +112,22 @@ export default class Install extends Command {
   }
 
   private async installMCPServer(configPath: string, serverName: string, client: string): Promise<void> {
-    let config: any = {}
+    interface ConfigType {
+      experimental?: {
+        modelContextProtocolServers?: Array<{
+          transport: {
+            args: string[];
+            command: string;
+            env: Record<string, string>;
+            type: string;
+          };
+        }>;
+        useTools?: boolean;
+      };
+      mcpServers?: Record<string, unknown>;
+    }
+
+    let config: ConfigType = {}
 
     try {
       // Check if file exists
@@ -128,7 +143,7 @@ export default class Install extends Command {
         // Create empty config
         config = {}
       } else {
-        throw error // Re-throw if it's not a missing file error
+        throw error
       }
     }
 
@@ -140,7 +155,7 @@ export default class Install extends Command {
     const finalArgs = [...serverConfig.args]
     if (serverConfig.runtimeArgs) {
       const runtimeArg = serverConfig.runtimeArgs
-      let answer: any
+      let answer: string | string[]
 
       // Special case for filesystem-ref server
       let defaultValue = runtimeArg.default
@@ -152,25 +167,34 @@ export default class Install extends Command {
 
       if (runtimeArg.multiple) {
         // First get the default path
-        answer = await inquirer.input({
+        const initialAnswer = await inquirer.input({
           default: Array.isArray(defaultValue) ? defaultValue.join(', ') : defaultValue,
           message: runtimeArg.description,
         })
-        const paths = answer.split(',').map((s: string) => s.trim())
+        const paths = initialAnswer.split(',').map((s: string) => s.trim())
 
-        // Keep asking for additional paths
-        while (true) {
-          const additionalPath = await inquirer.input({
+        // Keep asking for additional paths until empty input
+        const getAdditionalPaths = async (): Promise<string[]> => {
+          const additionalPaths: string[] = []
+          let input = await inquirer.input({
             default: "",
             message: "Add another allowed directory path? (press Enter to finish)",
           })
 
-          if (!additionalPath.trim()) {
-            break
+          while (input.trim()) {
+            additionalPaths.push(input.trim())
+            // eslint-disable-next-line no-await-in-loop
+            input = await inquirer.input({
+              default: "",
+              message: "Add another allowed directory path? (press Enter to finish)",
+            })
           }
 
-          paths.push(additionalPath.trim())
+          return additionalPaths
         }
+
+        const additionalPaths = await getAdditionalPaths()
+        paths.push(...additionalPaths)
 
         answer = paths
       } else {
@@ -193,6 +217,7 @@ export default class Install extends Command {
     const answers: Record<string, string> = {}
 
     for (const [key, value] of Object.entries(envVars)) {
+      // eslint-disable-next-line no-await-in-loop
       const answer = await inquirer.input({
         message: value.description,
         validate(input: string) {
@@ -238,8 +263,8 @@ export default class Install extends Command {
 
       // Find if server already exists in the array
       const existingServerIndex = config.experimental.modelContextProtocolServers.findIndex(
-        (s: any) => s.transport.command === serverConfig.command &&
-                   JSON.stringify(s.transport.args) === JSON.stringify(finalArgs)
+        (s) => s.transport.command === serverConfig.command &&
+               JSON.stringify(s.transport.args) === JSON.stringify(finalArgs)
       )
 
       if (existingServerIndex >= 0) {
@@ -274,7 +299,7 @@ export default class Install extends Command {
     }
   }
 
-  private async installOnWindows(serverName: string, client: string): Promise<void> {
+  private async installOnWindows(_serverName: string, _client: string): Promise<void> {
     // TODO: Implement Windows-specific installation logic
     throw new Error('Windows installation not implemented yet')
   }
@@ -297,73 +322,23 @@ export default class Install extends Command {
       throw new Error(`Unknown client: ${client}`)
     }
 
+    const sleep = (ms: number) => new Promise(resolve => { setTimeout(resolve, ms) })
+
     try {
       const {platform} = process
       if (platform === 'darwin') {
         if (client === 'continue') {
-          try {
-            // First, find VS Code's installation location
-            const findVSCode = await execAsync('mdfind "kMDItemCFBundleIdentifier == \'com.microsoft.VSCode\'" | head -n1')
-            const vscodePath = findVSCode.stdout.trim()
-
-            if (vscodePath) {
-              const electronPath = path.join(vscodePath, 'Contents/MacOS/Electron')
-              // Check if VS Code is running using the found path
-              const vscodeProcesses = await execAsync(`pgrep -fl "${electronPath}"`)
-              if (vscodeProcesses.stdout.trim().length > 0) {
-                // Use pkill with full path to ensure we only kill VS Code's Electron
-                await execAsync(`pkill -f "${electronPath}"`)
-                await new Promise(resolve => setTimeout(resolve, 2000))
-                await execAsync(`open -a "Visual Studio Code"`)
-                this.log(`✨ Continue (VS Code) has been restarted`)
-                return
-              }
-            }
-          } catch {
-            // VS Code not found or error in detection, try JetBrains
-            try {
-              const jetbrainsProcesses = await execAsync('pgrep -fl "IntelliJ IDEA.app"')
-              if (jetbrainsProcesses.stdout.trim().length > 0) {
-                await execAsync(`killall "idea"`)
-                await new Promise(resolve => setTimeout(resolve, 2000))
-                await execAsync(`open -a "IntelliJ IDEA"`)
-                this.log(`✨ Continue (IntelliJ IDEA) has been restarted`)
-                return
-              }
-            } catch {
-              // JetBrains not found
-            }
-          }
-
-          throw new Error('Could not detect running IDE (VS Code or JetBrains) for Continue')
+          await this.restartContinueClient()
         } else {
           // For other clients like Claude, use the normal process
           await execAsync(`killall "${processName}"`)
-          await new Promise(resolve => setTimeout(resolve, 2000))
+          await sleep(2000)
           await execAsync(`open -a "${processName}"`)
           this.log(`✨ ${this.clientDisplayNames[client]} has been restarted`)
         }
       } else if (platform === 'win32') {
         if (client === 'continue') {
-          try {
-            const vscodeProcess = await execAsync('tasklist /FI "IMAGENAME eq Code.exe" /FO CSV /NH')
-            if (vscodeProcess.stdout.includes('Code.exe')) {
-              await execAsync('taskkill /F /IM "Code.exe" && start "" "Visual Studio Code"')
-              this.log(`✨ VS Code has been restarted`)
-              return
-            }
-
-            const jetbrainsProcess = await execAsync('tasklist /FI "IMAGENAME eq idea64.exe" /FO CSV /NH')
-            if (jetbrainsProcess.stdout.includes('idea64.exe')) {
-              await execAsync('taskkill /F /IM "idea64.exe" && start "" "IntelliJ IDEA"')
-              this.log(`✨ IntelliJ IDEA has been restarted`)
-              return
-            }
-          } catch {
-            // Process detection failed
-          }
-
-          throw new Error('Could not detect running IDE (VS Code or JetBrains) for Continue')
+          await this.restartContinueClientWindows()
         } else {
           // For other clients
           await execAsync(`taskkill /F /IM "${processName}.exe" && start "" "${processName}.exe"`)
@@ -384,6 +359,68 @@ export default class Install extends Command {
         this.error(`Failed to restart ${this.clientDisplayNames[client]}`)
       }
     }
+  }
+
+  private async restartContinueClient(): Promise<void> {
+    const sleep = (ms: number) => new Promise(resolve => { setTimeout(resolve, ms) })
+
+    try {
+      // First, find VS Code's installation location
+      const findVSCode = await execAsync('mdfind "kMDItemCFBundleIdentifier == \'com.microsoft.VSCode\'" | head -n1')
+      const vscodePath = findVSCode.stdout.trim()
+
+      if (vscodePath) {
+        const electronPath = path.join(vscodePath, 'Contents/MacOS/Electron')
+        // Check if VS Code is running using the found path
+        const vscodeProcesses = await execAsync(`pgrep -fl "${electronPath}"`)
+        if (vscodeProcesses.stdout.trim().length > 0) {
+          // Use pkill with full path to ensure we only kill VS Code's Electron
+          await execAsync(`pkill -f "${electronPath}"`)
+          await sleep(2000)
+          await execAsync(`open -a "Visual Studio Code"`)
+          this.log(`✨ Continue (VS Code) has been restarted`)
+          return
+        }
+      }
+    } catch {
+      // VS Code not found or error in detection, try JetBrains
+      try {
+        const jetbrainsProcesses = await execAsync('pgrep -fl "IntelliJ IDEA.app"')
+        if (jetbrainsProcesses.stdout.trim().length > 0) {
+          await execAsync(`killall "idea"`)
+          await sleep(2000)
+          await execAsync(`open -a "IntelliJ IDEA"`)
+          this.log(`✨ Continue (IntelliJ IDEA) has been restarted`)
+          return
+        }
+      } catch {
+        // JetBrains not found
+      }
+    }
+
+    throw new Error('Could not detect running IDE (VS Code or JetBrains) for Continue')
+  }
+
+  private async restartContinueClientWindows(): Promise<void> {
+    try {
+      const vscodeProcess = await execAsync('tasklist /FI "IMAGENAME eq Code.exe" /FO CSV /NH')
+      if (vscodeProcess.stdout.includes('Code.exe')) {
+        await execAsync('taskkill /F /IM "Code.exe" && start "" "Visual Studio Code"')
+        this.log(`✨ VS Code has been restarted`)
+        return
+      }
+
+      const jetbrainsProcess = await execAsync('tasklist /FI "IMAGENAME eq idea64.exe" /FO CSV /NH')
+      if (jetbrainsProcess.stdout.includes('idea64.exe')) {
+        await execAsync('taskkill /F /IM "idea64.exe" && start "" "IntelliJ IDEA"')
+        this.log(`✨ IntelliJ IDEA has been restarted`)
+        return
+      }
+    } catch {
+      // Process detection failed
+    }
+
+    throw new Error('Could not detect running IDE (VS Code or JetBrains) for Continue')
   }
 
   private async validateServer(serverName: string): Promise<MCPServerType> {

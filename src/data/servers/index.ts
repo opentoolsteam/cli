@@ -65,7 +65,7 @@ export const servers: MCPServerType[] = [
   {
     config: {
       args: [],
-      command: "${HOME}/go/bin/axiom-mcp",
+      command: "${HOME}/go/bin/axiom-mcp", // eslint-disable-line no-template-curly-in-string
       env: {
         "AXIOM_DATASETS_BURST": {
           description: "The burst limit for datasets.",

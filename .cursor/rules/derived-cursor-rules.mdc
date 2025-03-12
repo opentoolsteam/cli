@@ -29,6 +29,8 @@ The project follows a standard structure:
 - All commands should be defined in the `src/commands` directory.
 - Unit tests should be written for every command. Tests should accurately reflect command functionality. Avoid simple string matching in tests; instead verify behavior.
 - The `package.json` file should clearly define the entry point for the CLI.
+- Avoid using `any` type;  explicitly define types for all variables to prevent runtime errors.  (Added 2025-03-12)
+-  Interface properties should be sorted alphabetically to satisfy `perfectionist/sort-object-types` linting rule. (Added 2025-03-12)
 
 
 ## WORKFLOW & RELEASE RULES
@@ -42,6 +44,7 @@ The project follows a standard structure:
 ## REFERENCE EXAMPLES
 - Running the CLI from source:  See instructions in `2025-03-11_12-54-running-a-package-from-source-instructions.md`
 - Fixing TypeScript errors and missing modules: See `2025-03-12_14-21-fixing-typescript-errors-and-missing-modules.md`
+- Fixing type issues in `uninstall.ts`: See `2025-03-12_15-33-fixing-type-issues-in-uninstall-ts.md`
 
 
 ## PROJECT DOCUMENTATION & CONTEXT SYSTEM
@@ -55,6 +58,8 @@ Documentation will be maintained using markdown files and integrated into the re
 - Test failures often indicate a mismatch between test expectations and actual command output. Refactor tests to reflect actual command behavior.
 -  Deprecation warnings related to `fs.Stats` constructor indicate outdated code.  Update the relevant code sections.
 - Use `npm run lint -- --fix` to automatically fix many linting errors.
+-  `any` type errors indicate a need for explicit type definitions.  Properly type variables to resolve these errors. (Added 2025-03-12)
+- `perfectionist/sort-object-types` linting errors indicate improperly ordered object properties. Ensure properties are alphabetically ordered. (Added 2025-03-12)
 
 
 ## FINAL DOs AND DON'Ts
@@ -63,8 +68,12 @@ Documentation will be maintained using markdown files and integrated into the re
 - **DO** build the project using `npm run build` before running.
 - **DO** follow the folder organization guidelines.
 - **DO** install all necessary dependencies using `npm install`.
+- **DO** explicitly define types for all variables to avoid runtime errors. (Added 2025-03-12)
+- **DO** sort object properties alphabetically to satisfy linting rules. (Added 2025-03-12)
 - **DON'T** run the CLI without building the TypeScript code first.
 - **DON'T** leave variables untyped; ensure proper type declarations to avoid runtime errors.
 - **DON'T** write tests that rely on simple string matching of command output.  Focus on verifying actual command behavior.
 - **DON'T** ignore deprecation warnings; address them promptly to maintain code quality and avoid future compatibility issues.
 - **DON'T** ignore linting errors; address them using `npm run lint -- --fix` or manually.
+- **DON'T** use `any` type unless absolutely necessary and with clear justification. (Added 2025-03-12)
+- **DON'T** leave object properties unsorted; maintain alphabetical order for consistency and to satisfy linting rules. (Added 2025-03-12)
