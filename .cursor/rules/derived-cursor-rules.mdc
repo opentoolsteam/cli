@@ -1,0 +1,70 @@
+---
+description: Cursor rules derived by SpecStory from the project AI interaction history
+globs: *
+---
+
+## PROJECT OVERVIEW
+This project is a Node.js based CLI tool.  The source code is written in TypeScript.
+
+## CODE STYLE
+Adhere to standard TypeScript coding conventions.  Use Prettier for formatting.
+
+## FOLDER ORGANIZATION
+The project follows a standard structure:
+- `src`: Source code.
+- `test`: Unit tests.
+- `cli`:  Contains the CLI application's entry point and related files.
+
+
+## TECH STACK
+- Node.js
+- TypeScript
+- npm
+- shx (used in build script)
+- OCLIF (used for CLI framework)
+- zod (added 2025-03-12)
+
+
+## PROJECT-SPECIFIC STANDARDS
+- All commands should be defined in the `src/commands` directory.
+- Unit tests should be written for every command. Tests should accurately reflect command functionality. Avoid simple string matching in tests; instead verify behavior.
+- The `package.json` file should clearly define the entry point for the CLI.
+
+
+## WORKFLOW & RELEASE RULES
+- Before running the CLI, build the TypeScript code using `npm run build`.
+- Version updates will be managed using semantic versioning. (Further details on versioning strategy needed)
+- To resolve TypeScript errors and missing modules, follow the steps outlined in `2025-03-12_14-21-fixing-typescript-errors-and-missing-modules.md`.  This includes installing `zod` and correctly typing variables to avoid `'value' is of type 'unknown'` errors.  The `npm install zod` command will install the necessary dependency.  Type assertions like `as [string, EnvVariable][]` may be necessary to resolve type errors related to 'unknown' types.
+- To run tests, use `npm run test`. Tests should be updated to reflect actual command behavior, not simple string matching. Remove tests for commands that do not exist.  Use `npm run lint -- --fix` to automatically fix many linting errors.  To run tests without linting, use `npm test --no-posttest`.
+- Address deprecation warnings related to `fs.Stats` constructor.
+
+
+## REFERENCE EXAMPLES
+- Running the CLI from source:  See instructions in `2025-03-11_12-54-running-a-package-from-source-instructions.md`
+- Fixing TypeScript errors and missing modules: See `2025-03-12_14-21-fixing-typescript-errors-and-missing-modules.md`
+
+
+## PROJECT DOCUMENTATION & CONTEXT SYSTEM
+Documentation will be maintained using markdown files and integrated into the repository.
+
+## DEBUGGING
+- Ensure the TypeScript code is built (`npm run build`) before running the CLI.
+- The error "command i not found" indicates that the TypeScript code needs to be compiled.
+-  `'value' is of type 'unknown'` errors in TypeScript indicate improperly typed variables.  Refer to `2025-03-12_14-21-fixing-typescript-errors-and-missing-modules.md` for solutions.
+- Missing module errors (e.g., "Cannot find module 'zod'") indicate missing dependencies. Use `npm install` to install required packages.
+- Test failures often indicate a mismatch between test expectations and actual command output. Refactor tests to reflect actual command behavior.
+-  Deprecation warnings related to `fs.Stats` constructor indicate outdated code.  Update the relevant code sections.
+- Use `npm run lint -- --fix` to automatically fix many linting errors.
+
+
+## FINAL DOs AND DON'Ts
+- **DO** use TypeScript.
+- **DO** write unit tests that accurately reflect command functionality.
+- **DO** build the project using `npm run build` before running.
+- **DO** follow the folder organization guidelines.
+- **DO** install all necessary dependencies using `npm install`.
+- **DON'T** run the CLI without building the TypeScript code first.
+- **DON'T** leave variables untyped; ensure proper type declarations to avoid runtime errors.
+- **DON'T** write tests that rely on simple string matching of command output.  Focus on verifying actual command behavior.
+- **DON'T** ignore deprecation warnings; address them promptly to maintain code quality and avoid future compatibility issues.
+- **DON'T** ignore linting errors; address them using `npm run lint -- --fix` or manually.
