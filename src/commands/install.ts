@@ -1,38 +1,19 @@
-import {Args, Command, Flags} from '@oclif/core'
-import * as fs from 'fs/promises'
-import * as path from 'path'
-import * as os from 'os'
 import * as inquirer from '@inquirer/prompts'
-import { servers } from '../data/servers/index.js'
+import {Args, Command, Flags} from '@oclif/core'
+import { exec } from 'node:child_process'
+import * as fs from 'node:fs/promises'
+import * as os from 'node:os'
+import * as path from 'node:path'
+import { promisify } from 'node:util'
+
 import type { MCPServerType } from '../data/types.js'
-import { promisify } from 'util'
-import { exec } from 'child_process'
+
+import { servers } from '../data/servers/index.js'
 
 const execAsync = promisify(exec)
 
 export default class Install extends Command {
-  private CLIENTS_REQUIRING_RESTART: string[] = ['claude']
-  
-  private clientDisplayNames: Record<string, string> = {
-    'claude': 'Claude Desktop',
-    'continue': 'Continue'
-  }
-
-  private clientProcessNames: Record<string, string> = {
-    'claude': 'Claude',
-    'continue': 'Continue'
-  }
-
-  private async validateServer(serverName: string): Promise<MCPServerType> {
-    const server = servers.find(s => s.id === serverName)
-    if (!server) {
-      this.error(`Server "${serverName}" not found in registry`)
-    }
-    if (server.distribution?.type === 'source') {
-      this.error(`Server "${serverName}" is a source distribution and cannot via OpenTools (for now). To install, please visit ${server.sourceUrl}`)
-    }
-    return server
-  }
+  static aliases = ['i']
 
   static args = {
     server: Args.string({
@@ -52,17 +33,61 @@ export default class Install extends Command {
   static flags = {
     client: Flags.string({
       char: 'c',
+      default: 'claude',
       description: 'Install the MCP server to this client',
       options: ['claude', 'continue'],
-      default: 'claude',
     }),
   }
 
-  static aliases = ['i']
+  private clientDisplayNames: Record<string, string> = {
+    'claude': 'Claude Desktop',
+    'continue': 'Continue'
+  }
+
+  private clientProcessNames: Record<string, string> = {
+    'claude': 'Claude',
+    'continue': 'Continue'
+  }
+
+  private CLIENTS_REQUIRING_RESTART: string[] = ['claude']
+
+  public async run(): Promise<void> {
+    const {args, flags} = await this.parse(Install)
+
+    // Validate server exists in registry
+    await this.validateServer(args.server)
+
+    // Detect operating system
+    const {platform} = process
+
+    if (platform !== 'darwin' && platform !== 'win32') {
+      this.error('This command is only supported on macOS and Windows')
+      return
+    }
+
+    this.log(`Installing MCP server: ${args.server}`)
+    this.log(`Platform: ${platform === 'darwin' ? 'macOS' : 'Windows'}`)
+    this.log(`Client: ${flags.client}`)
+
+    try {
+      await (platform === 'darwin' ? this.installOnMacOS(args.server, flags.client) : this.installOnWindows(args.server, flags.client));
+
+      // After successful installation, prompt for restart
+      if (this.CLIENTS_REQUIRING_RESTART.includes(flags.client)) {
+        await this.promptForRestart(flags.client)
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.error(`Failed to install server: ${error.message}`)
+      } else {
+        this.error('An unknown error occurred during installation')
+      }
+    }
+  }
 
   private getConfigPath(client: string): string {
     switch (client) {
-      case 'claude':
+      case 'claude': {
         return path.join(
           os.homedir(),
           'Library',
@@ -70,14 +95,19 @@ export default class Install extends Command {
           'Claude',
           'claude_desktop_config.json'
         )
-      case 'continue':
+      }
+
+      case 'continue': {
         return path.join(
           os.homedir(),
           '.continue',
           'config.json'
         )
-      default:
+      }
+
+      default: {
         throw new Error(`Unsupported client: ${client}`)
+      }
     }
   }
 
@@ -88,7 +118,7 @@ export default class Install extends Command {
       // Check if file exists
       await fs.access(configPath)
       // Read and parse the config file
-      const configContent = await fs.readFile(configPath, 'utf-8')
+      const configContent = await fs.readFile(configPath, 'utf8')
       config = JSON.parse(configContent)
     } catch (error: unknown) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
@@ -107,7 +137,7 @@ export default class Install extends Command {
     const serverConfig = server.config
 
     // Handle runtime arguments if they exist
-    let finalArgs = [...serverConfig.args]
+    const finalArgs = [...serverConfig.args]
     if (serverConfig.runtimeArgs) {
       const runtimeArg = serverConfig.runtimeArgs
       let answer: any
@@ -123,16 +153,16 @@ export default class Install extends Command {
       if (runtimeArg.multiple) {
         // First get the default path
         answer = await inquirer.input({
-          message: runtimeArg.description,
           default: Array.isArray(defaultValue) ? defaultValue.join(', ') : defaultValue,
+          message: runtimeArg.description,
         })
-        let paths = answer.split(',').map((s: string) => s.trim())
+        const paths = answer.split(',').map((s: string) => s.trim())
 
         // Keep asking for additional paths
         while (true) {
           const additionalPath = await inquirer.input({
-            message: "Add another allowed directory path? (press Enter to finish)",
             default: "",
+            message: "Add another allowed directory path? (press Enter to finish)",
           })
 
           if (!additionalPath.trim()) {
@@ -145,8 +175,8 @@ export default class Install extends Command {
         answer = paths
       } else {
         answer = await inquirer.input({
-          message: runtimeArg.description,
           default: defaultValue,
+          message: runtimeArg.description,
         })
       }
 
@@ -165,10 +195,11 @@ export default class Install extends Command {
     for (const [key, value] of Object.entries(envVars)) {
       const answer = await inquirer.input({
         message: value.description,
-        validate: (input: string) => {
+        validate(input: string) {
           if (value.required !== false && !input) {
             return `${key} is required`
           }
+
           return true
         }
       })
@@ -182,8 +213,8 @@ export default class Install extends Command {
     if (client === 'claude') {
       config.mcpServers = config.mcpServers || {}
       config.mcpServers[serverName] = {
-        command: serverConfig.command,
         args: finalArgs,
+        command: serverConfig.command,
         env: answers
       }
     } else if (client === 'continue') {
@@ -199,10 +230,10 @@ export default class Install extends Command {
       config.experimental.modelContextProtocolServers = config.experimental.modelContextProtocolServers || []
 
       const serverTransport = {
-        type: 'stdio',
-        command: serverConfig.command,
         args: finalArgs,
-        env: answers
+        command: serverConfig.command,
+        env: answers,
+        type: 'stdio'
       }
 
       // Find if server already exists in the array
@@ -250,8 +281,8 @@ export default class Install extends Command {
 
   private async promptForRestart(client: string): Promise<void> {
     const answer = await inquirer.confirm({
-      message: `Would you like to restart ${this.clientDisplayNames[client]} to apply changes?`,
       default: true,
+      message: `Would you like to restart ${this.clientDisplayNames[client]} to apply changes?`,
     })
 
     if (answer) {
@@ -267,7 +298,7 @@ export default class Install extends Command {
     }
 
     try {
-      const platform = process.platform
+      const {platform} = process
       if (platform === 'darwin') {
         if (client === 'continue') {
           try {
@@ -288,7 +319,7 @@ export default class Install extends Command {
                 return
               }
             }
-          } catch (error) {
+          } catch {
             // VS Code not found or error in detection, try JetBrains
             try {
               const jetbrainsProcesses = await execAsync('pgrep -fl "IntelliJ IDEA.app"')
@@ -328,7 +359,7 @@ export default class Install extends Command {
               this.log(`✨ IntelliJ IDEA has been restarted`)
               return
             }
-          } catch (error) {
+          } catch {
             // Process detection failed
           }
 
@@ -355,41 +386,16 @@ export default class Install extends Command {
     }
   }
 
-  public async run(): Promise<void> {
-    const {args, flags} = await this.parse(Install)
-
-    // Validate server exists in registry
-    const server = await this.validateServer(args.server)
-
-    // Detect operating system
-    const platform = process.platform
-
-    if (platform !== 'darwin' && platform !== 'win32') {
-      this.error('This command is only supported on macOS and Windows')
-      return
+  private async validateServer(serverName: string): Promise<MCPServerType> {
+    const server = servers.find(s => s.id === serverName)
+    if (!server) {
+      this.error(`Server "${serverName}" not found in registry`)
     }
 
-    this.log(`Installing MCP server: ${args.server}`)
-    this.log(`Platform: ${platform === 'darwin' ? 'macOS' : 'Windows'}`)
-    this.log(`Client: ${flags.client}`)
-
-    try {
-      if (platform === 'darwin') {
-        await this.installOnMacOS(args.server, flags.client)
-      } else {
-        await this.installOnWindows(args.server, flags.client)
-      }
-
-      // After successful installation, prompt for restart
-      if (this.CLIENTS_REQUIRING_RESTART.includes(flags.client)) {
-        await this.promptForRestart(flags.client)
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        this.error(`Failed to install server: ${error.message}`)
-      } else {
-        this.error('An unknown error occurred during installation')
-      }
+    if (server.distribution?.type === 'source') {
+      this.error(`Server "${serverName}" is a source distribution and cannot via OpenTools (for now). To install, please visit ${server.sourceUrl}`)
     }
+
+    return server
   }
 }

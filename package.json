@@ -10,7 +10,8 @@
   "dependencies": {
     "@inquirer/prompts": "^7.2.1",
     "@oclif/core": "^4",
-    "@oclif/plugin-help": "^6"
+    "@oclif/plugin-help": "^6",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",

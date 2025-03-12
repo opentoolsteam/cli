@@ -6,40 +6,40 @@ export const EnvVariable = z.object({
 })
 
 export const MCPServerRuntimeArg = z.object({
-  description: z.string(),
   default: z.any().optional(),
+  description: z.string(),
   multiple: z.boolean().optional().default(false),
 })
 
 export const MCPServerConfig = z.object({
-  command: z.string(),
   args: z.array(z.string()),
-  runtimeArgs: MCPServerRuntimeArg.optional(),
+  command: z.string(),
   env: z.record(z.string(), EnvVariable),
+  runtimeArgs: MCPServerRuntimeArg.optional(),
 })
 
 export const MCPServer = z.object({
-  id: z.string().regex(/^[a-z0-9-]+$/),
-  name: z.string(),
+  config: MCPServerConfig,
   description: z.string(),
+  distribution: z.object({
+    package: z.string().optional(),
+    source: z.object({
+      binary: z.string(),
+      path: z.string()
+    }).optional(),
+    type: z.enum(['npm', 'pip', 'source']),
+  }),
+  id: z.string().regex(/^[\da-z-]+$/),
+  isOfficial: z.boolean().default(false),
+  license: z.string().optional(),
+  name: z.string(),
   publisher: z.object({
-    id: z.string().regex(/^[a-z0-9-]+$/),
+    id: z.string().regex(/^[\da-z-]+$/),
     name: z.string(),
     url: z.string().url(),
   }),
-  isOfficial: z.boolean().default(false),
-  sourceUrl: z.string().url(),
-  distribution: z.object({
-    type: z.enum(['npm', 'pip', 'source']),
-    package: z.string().optional(),
-    source: z.object({
-      path: z.string(),
-      binary: z.string()
-    }).optional(),
-  }),
-  license: z.string().optional(),
   runtime: z.enum(['node', 'python', 'go', 'other']),
-  config: MCPServerConfig,
+  sourceUrl: z.string().url(),
 })
 
 // Infer types from schemas
