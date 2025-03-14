@@ -12,7 +12,7 @@ export const servers: MCPServerType[] = [
           }
         }
     },
-    description: 'Pull the latest fundamental crypto data from Artemis natively into you favorite chatbot interface.',
+    description: 'Pull the latest fundamental crypto data from Artemis natively into your favorite chatbot interface.',
     distribution: {
       package: 'artemis-mcp',
       type: 'pip',
