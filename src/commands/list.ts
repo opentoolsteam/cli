@@ -1,14 +1,12 @@
 import {Command, Flags} from '@oclif/core'
-import * as fs from 'fs/promises'
-import * as path from 'path'
-import * as os from 'os'
+import * as fs from 'node:fs/promises'
+import * as os from 'node:os'
+import * as path from 'node:path'
+
 import { servers } from '../data/servers/index.js'
 
 export default class List extends Command {
-  private clientDisplayNames: Record<string, string> = {
-    'claude': 'Claude Desktop',
-    'continue': 'Continue'
-  }
+  static aliases = ['ls']
 
   static override description = 'List installed servers across all clients'
 
@@ -27,7 +25,10 @@ export default class List extends Command {
     }),
   }
 
-  static aliases = ['ls']
+  private clientDisplayNames: Record<string, string> = {
+    'claude': 'Claude Desktop',
+    'continue': 'Continue'
+  }
 
   public async run(): Promise<void> {
     const {flags} = await this.parse(List)
@@ -69,40 +70,42 @@ export default class List extends Command {
     )
 
     try {
-      const configContent = await fs.readFile(configPath, 'utf-8')
+      const configContent = await fs.readFile(configPath, 'utf8')
       const config = JSON.parse(configContent)
       const installedServers = Object.keys(config.mcpServers || {})
 
       if (installedServers.length > 0) {
-        this.log(`\n${this.clientDisplayNames['claude']}`)
+        this.log(`\n${this.clientDisplayNames.claude}`)
 
         // Sort servers into registered and unknown
         const registeredServers = installedServers.filter(id => servers.some(s => s.id === id))
         const unknownServers = installedServers.filter(id => !servers.some(s => s.id === id))
 
         // Display registered servers first
-        registeredServers.forEach((serverId, index) => {
+        for (const [index, serverId] of registeredServers.entries()) {
           const prefix = index === registeredServers.length - 1 && unknownServers.length === 0 ? '└── ' : '├── '
           const link = `\u001B]8;;https://opentools.com/registry/${serverId}\u0007${serverId}\u001B]8;;\u0007`
           this.log(`${prefix}${link}`)
-        })
+        }
 
         // Then display unknown servers
-        unknownServers.forEach((serverId, index) => {
+        for (const [index, serverId] of unknownServers.entries()) {
           const prefix = index === unknownServers.length - 1 ? '└── ' : '├── '
-          this.log(`\x1b[31m${prefix}${serverId} (unknown)\x1b[0m`)
-        })
+          this.log(`\u001B[31m${prefix}${serverId} (unknown)\u001B[0m`)
+        }
 
         return true
       }
+
       return false
 
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
         return false
-      } else {
-        throw error
       }
+ 
+        throw error
+      
     }
   }
 
@@ -114,7 +117,7 @@ export default class List extends Command {
     )
 
     try {
-      const configContent = await fs.readFile(configPath, 'utf-8')
+      const configContent = await fs.readFile(configPath, 'utf8')
       const config = JSON.parse(configContent)
 
       // Get installed servers from the experimental.modelContextProtocolServers array
@@ -123,7 +126,7 @@ export default class List extends Command {
       // Map installed servers back to their IDs by matching command and args
       const validServers = servers
         .filter(registryServer =>
-          installedServers.some((installed: { transport: { command: string, args: string[] } }) =>
+          installedServers.some((installed: { transport: { args: string[], command: string } }) =>
             installed.transport.command === registryServer.config.command &&
             JSON.stringify(installed.transport.args.slice(0, registryServer.config.args.length)) === JSON.stringify(registryServer.config.args)
           )
@@ -132,24 +135,27 @@ export default class List extends Command {
 
       // Only output if there are valid servers
       if (validServers.length > 0) {
-        this.log(`\n${this.clientDisplayNames['continue']}`)
+        this.log(`\n${this.clientDisplayNames.continue}`)
         // Print servers in a tree-like format
-        validServers.forEach((serverId, index) => {
+        for (const [index, serverId] of validServers.entries()) {
           const prefix = index === validServers.length - 1 ? '└── ' : '├── '
           const link = `\u001B]8;;https://opentools.com/registry/${serverId}\u0007${serverId}\u001B]8;;\u0007`
           this.log(`${prefix}${link}`)
-        })
+        }
+
         return true
       }
+
       return false
 
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
         // Don't output anything if client not installed
         return false
-      } else {
-        throw error
       }
+ 
+        throw error
+      
     }
   }
 }

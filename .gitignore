@@ -10,3 +10,4 @@ yarn.lock
 pnpm-lock.yaml
 *.tsbuildinfo
 .vscode/
+.specstory

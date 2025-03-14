@@ -1,5 +1,5 @@
-export {run} from '@oclif/core'
+export * from './data/servers'
 
 // Export types and data
 export * from './data/types'
-export * from './data/servers'
+export {run} from '@oclif/core'
