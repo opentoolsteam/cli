@@ -1,7 +1,7 @@
 {
   "name": "opentools",
   "description": "The easiest way to install MCP servers",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "author": "OpenTools Team",
   "bin": {
     "opentools": "./bin/run.js"
