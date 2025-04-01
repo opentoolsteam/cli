@@ -1,6 +1,6 @@
 import * as inquirer from '@inquirer/prompts'
 import {Args, Command, Flags} from '@oclif/core'
-import { exec } from 'node:child_process'
+import { exec, execFile } from 'node:child_process'
 import * as fs from 'node:fs/promises'
 import * as os from 'node:os'
 import * as path from 'node:path'
@@ -11,6 +11,24 @@ import type { MCPServerType } from '../data/types.js'
 import { servers } from '../data/servers/index.js'
 
 const execAsync = promisify(exec)
+
+interface ConfigServer {
+  args: string[];
+  command: string;
+  env: Record<string, string>;
+}
+
+interface ConfigType {
+  experimental?: {
+    modelContextProtocolServers?: Array<{
+      transport: { type: string } & ConfigServer;
+    }>;
+    useTools?: boolean;
+  };
+  mcpServers?: Record<string, ConfigServer>;
+}
+
+type ConfigTarget = { args: string[]; command: string; type: 'command' } | { path: string; type: 'file' };
 
 export default class Install extends Command {
   static aliases = ['i']
@@ -28,6 +46,8 @@ export default class Install extends Command {
     '<%= config.bin %> <%= command.id %> server-name',
     '<%= config.bin %> <%= command.id %> server-name --client claude',
     '<%= config.bin %> <%= command.id %> server-name --client continue',
+    '<%= config.bin %> <%= command.id %> server-name --client vscode',
+    '<%= config.bin %> <%= command.id %> server-name --client vscode-insiders',
   ]
 
   static flags = {
@@ -35,7 +55,7 @@ export default class Install extends Command {
       char: 'c',
       default: 'claude',
       description: 'Install the MCP server to this client',
-      options: ['claude', 'continue'],
+      options: ['claude', 'continue', 'vscode', 'vscode-insiders'],
     }),
   }
 
@@ -85,24 +105,98 @@ export default class Install extends Command {
     }
   }
 
-  private getConfigPath(client: string): string {
+  private addServerToConfig(client: string, serverName: string, config: ConfigType, serverConfig: ConfigServer): void {
+    if (client === 'claude') {
+      config.mcpServers = config.mcpServers || {}
+      config.mcpServers[serverName] = serverConfig
+    } else if (client === 'continue') {
+      // Initialize experimental if it doesn't exist
+      if (!config.experimental) {
+        config.experimental = {}
+      }
+
+      // Always set useTools to true
+      config.experimental.useTools = true
+
+      // Initialize modelContextProtocolServers if it doesn't exist
+      config.experimental.modelContextProtocolServers = config.experimental.modelContextProtocolServers || []
+
+      const serverTransport = {
+        ...serverConfig,
+        type: 'stdio'
+      }
+
+      // Find if server already exists in the array
+      const existingServerIndex = config.experimental.modelContextProtocolServers.findIndex(
+        (s) => s.transport.command === serverConfig.command &&
+               JSON.stringify(s.transport.args) === JSON.stringify(serverConfig.args)
+      )
+
+      if (existingServerIndex >= 0) {
+        config.experimental.modelContextProtocolServers[existingServerIndex].transport = serverTransport
+      } else {
+        config.experimental.modelContextProtocolServers.push({
+          transport: serverTransport
+        })
+      }
+    }
+  }
+
+  private async addServerViaCommand(command: string, args: string[], serverName: string, serverConfig: ConfigServer): Promise<void> {
+    const json = JSON.stringify({ ...serverConfig, name: serverName })
+    return  new Promise<void>((resolve, reject) => {
+      const child = execFile(command, [...args, json], (err, stdout, stderr) => {
+        if (err) {
+          reject(err)
+        } else if (child.exitCode === 0) {
+          resolve()
+        } else {
+          reject(new Error(`running ${command}: ${stderr.toString() || stdout.toString()}`))
+        }
+      })
+    })
+  }
+
+  private getConfigTarget(client: string, platform: 'macos' | 'win'): ConfigTarget {
     switch (client) {
       case 'claude': {
-        return path.join(
-          os.homedir(),
-          'Library',
-          'Application Support',
-          'Claude',
-          'claude_desktop_config.json'
-        )
+        if (platform === 'win') {
+          throw new Error('Windows installation not implemented yet')
+        }
+
+        return {
+          path: path.join(
+            os.homedir(),
+            'Library',
+            'Application Support',
+            'Claude',
+            'claude_desktop_config.json'
+          ),
+          type: 'file',
+        }
       }
 
       case 'continue': {
-        return path.join(
-          os.homedir(),
-          '.continue',
-          'config.json'
-        )
+        if (platform === 'win') {
+          throw new Error('Windows installation not implemented yet')
+        }
+
+        return {
+          path: path.join(
+            os.homedir(),
+            '.continue',
+            'config.json'
+          ),
+          type: 'file',
+        }
+      }
+
+      case 'vscode': {
+        return { args: ['--add-mcp'], command: platform === 'win' ? 'code.cmd' : 'code', type: 'command' }
+      }
+
+      case 'vscode-insiders': {
+        return { args: ['--add-mcp'], command: platform === 'win' ? 'code-insiders.cmd' : 'code-insiders', type: 'command' }
       }
 
       default: {
@@ -111,39 +205,27 @@ export default class Install extends Command {
     }
   }
 
-  private async installMCPServer(configPath: string, serverName: string, client: string): Promise<void> {
-    interface ConfigType {
-      experimental?: {
-        modelContextProtocolServers?: Array<{
-          transport: {
-            args: string[];
-            command: string;
-            env: Record<string, string>;
-            type: string;
-          };
-        }>;
-        useTools?: boolean;
-      };
-      mcpServers?: Record<string, unknown>;
-    }
+  private async installMCPServer(configTarget: ConfigTarget, serverName: string, client: string): Promise<void> {
 
     let config: ConfigType = {}
 
-    try {
-      // Check if file exists
-      await fs.access(configPath)
-      // Read and parse the config file
-      const configContent = await fs.readFile(configPath, 'utf8')
-      config = JSON.parse(configContent)
-    } catch (error: unknown) {
-      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-        this.log('🆕  Initializing new configuration file...')
-        // Create directory if it doesn't exist
-        await fs.mkdir(path.dirname(configPath), { recursive: true })
-        // Create empty config
-        config = {}
-      } else {
-        throw error
+    if (configTarget.type === 'file') {
+      try {
+          // Check if file exists
+          await fs.access(configTarget.path)
+          // Read and parse the config file
+          const configContent = await fs.readFile(configTarget.path, 'utf8')
+          config = JSON.parse(configContent)
+      } catch (error: unknown) {
+        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+          this.log('🆕  Initializing new configuration file...')
+          // Create directory if it doesn't exist
+          await fs.mkdir(path.dirname(configTarget.path), { recursive: true })
+          // Create empty config
+          config = {}
+        } else {
+          throw error
+        }
       }
     }
 
@@ -234,62 +316,45 @@ export default class Install extends Command {
       }
     }
 
-    // Update the config based on client type
-    if (client === 'claude') {
-      config.mcpServers = config.mcpServers || {}
-      config.mcpServers[serverName] = {
-        args: finalArgs,
-        command: serverConfig.command,
-        env: answers
-      }
-    } else if (client === 'continue') {
-      // Initialize experimental if it doesn't exist
-      if (!config.experimental) {
-        config.experimental = {}
-      }
 
-      // Always set useTools to true
-      config.experimental.useTools = true
-
-      // Initialize modelContextProtocolServers if it doesn't exist
-      config.experimental.modelContextProtocolServers = config.experimental.modelContextProtocolServers || []
-
-      const serverTransport = {
-        args: finalArgs,
-        command: serverConfig.command,
-        env: answers,
-        type: 'stdio'
-      }
-
-      // Find if server already exists in the array
-      const existingServerIndex = config.experimental.modelContextProtocolServers.findIndex(
-        (s) => s.transport.command === serverConfig.command &&
-               JSON.stringify(s.transport.args) === JSON.stringify(finalArgs)
-      )
-
-      if (existingServerIndex >= 0) {
-        config.experimental.modelContextProtocolServers[existingServerIndex].transport = serverTransport
-      } else {
-        config.experimental.modelContextProtocolServers.push({
-          transport: serverTransport
-        })
-      }
+    const finalConfig: ConfigServer = {
+      args: finalArgs,
+      command: serverConfig.command,
+      env: answers,
     }
 
-    // Write the updated config back to file
-    await fs.writeFile(configPath, JSON.stringify(config, null, 2))
+    if (configTarget.type === 'file') {
+      // Update the config based on client type
+      this.addServerToConfig(client, serverName, config, finalConfig)
+      // Write the updated config back to file
+      await fs.writeFile(configTarget.path, JSON.stringify(config, null, 2))
+    } else {
+      await this.addServerViaCommand(configTarget.command, configTarget.args, serverName, finalConfig)
+    }
+
 
     this.log(`🛠️  Successfully installed ${serverName}`)
   }
 
-  private async installOnMacOS(serverName: string, client: string): Promise<void> {
-    const configPath = this.getConfigPath(client)
+  private installOnMacOS(serverName: string, client: string): Promise<void> {
+    return this.installUsingConfig(this.getConfigTarget(client, 'macos'), serverName, client)
+  }
+
+  private async installOnWindows(serverName: string, client: string): Promise<void> {
+    return this.installUsingConfig(this.getConfigTarget(client, 'win'), serverName, client)
+  }
+
+  private async installUsingConfig(configTarget: ConfigTarget, serverName: string, client: string): Promise<void> {
     try {
-      await this.installMCPServer(configPath, serverName, client)
+      await this.installMCPServer(configTarget, serverName, client)
     } catch (error: unknown) {
       if (error instanceof Error) {
         if ('code' in error && error.code === 'ENOENT') {
-          this.error(`Config file not found at ${configPath}. Is ${client} installed?`)
+          if (configTarget.type === 'file') {
+            this.error(`Config file not found at ${configTarget.path}. Is ${client} installed?`)
+          } else {
+            this.error(`Command not found '${configTarget.command}'. Is ${client} installed?`)
+          }
         } else {
           this.error(`Error reading config: ${error.message}`)
         }
@@ -297,11 +362,6 @@ export default class Install extends Command {
         this.error('An unknown error occurred')
       }
     }
-  }
-
-  private async installOnWindows(_serverName: string, _client: string): Promise<void> {
-    // TODO: Implement Windows-specific installation logic
-    throw new Error('Windows installation not implemented yet')
   }
 
   private async promptForRestart(client: string): Promise<void> {
