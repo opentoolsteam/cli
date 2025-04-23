@@ -723,4 +723,27 @@ export const servers: MCPServerType[] = [
     runtime: "python",
     sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/time"
   },
+  {
+    config: {
+      args: ["-y", "@alanagoyal/mcp-server@latest"],
+      command: "npx",
+      env: {}
+    },
+    description: "a model context protocol (mcp) server that provides ai assistants with information about alana goyal and basecase, based on alanagoyal.com and basecase.vc. the server integrates with popular ai development environments like windsurf and cursor.",
+    distribution: {
+      package: "@alanagoyal/mcp-server",
+      type: "npm",
+    },
+    id: "alanagoyal",
+    isOfficial: false,
+    license: "ISC",
+    name: "Alana Goyal",
+    publisher: {
+      id: "alanagoyal",
+      name: "Alana Goyal",
+      url: "https://alanagoyal.com/",
+    },
+    runtime: "node",
+    sourceUrl: "https://github.com/alanagoyal/mcp-server"
+  },
 ]
