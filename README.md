@@ -64,7 +64,8 @@ $ opentools list --client continue
 # Supported Clients
 
 - Claude Desktop (default)
-- Continue (experimental)
+- Continue
+- VS Code
 
 # Available Servers
 
