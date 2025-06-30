@@ -63,6 +63,31 @@ export const servers: MCPServerType[] = [
     sourceUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/aws-kb-retrieval-server"
   },
   {
+  config: {
+    args: ["-y", "mcp-remote", "https://mcp.prisma.io/mcp"],
+    command: 'npx',
+    env: {
+       },
+    },
+  },
+  description: "Gives LLMs the ability to manage Prisma Postgres databases (e.g. spin up new databases and run migrations or queries)",
+  distribution: {
+    package: 'mcp-remote',
+    type: 'npx',
+  },
+  id: "prisma",
+  isOfficial: true,
+  license: "MIT",
+  name: "Prisma MCP Server",
+  publisher: {
+    id: "prisma",
+    name: "Prisma Data, Inc.",
+    url: "https://prisma.io/",
+  },
+  runtime: "node",
+  sourceUrl: "https://github.com/prisma/mcp"
+},
+  {
     config: {
       args: [],
       command: "${HOME}/go/bin/axiom-mcp", // eslint-disable-line no-template-curly-in-string
