@@ -1,0 +1,42 @@
+
+name: Indent PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  indent:
+    #### (Optional) Uncomment the `if` condition below to only run the workflow if the PR is labeled with 'indent'.
+    #### It's recommended to also add 'labeled' to the `pull_request: types:` list above.
+    #
+    # if: contains(github.event.pull_request.labels.*.name, 'indent')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.2"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/uv.lock
+            **/pyproject.toml
+
+      - name: Login to Indent
+        run: uvx indent-ai login --key ${{ secrets.PR_REVIEW_INDENT_API_KEY }}
+
+      - name: Generate dynamic prompt and run Indent
+        env:
+          EXPONENT_API_KEY: ${{ secrets.PR_REVIEW_INDENT_API_KEY }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          uvx indent-ai run --workflow-id indent_pr_review
+
